@@ -1,0 +1,71 @@
+Thu Jun 29 07:47:16 CEST 2017
+
+idea: keep the 4792 records so it's easier to refer to them,
+but replace difficult or "wrong" ingred. lists with
+__DELETED__
+
+
+before implementing Levenshtein I have to get rid of ingredients
+parsed with too short names, like:
+
+step4: parse allergy information very carefully.
+
+347 ingredients with text "kan inne"
+98 of which with "kan inne.*och"
+
+
+time ./levenshtein > /dev/null
+DBG nw = 12198
+init_wordlist(): wordlist has 12198 words.
+levenshtein matrix: size 12198, doing 74389503 calculations.
+..0 ..1000 ..2000 ..3000 ..4000 ..5000 ..6000 ..7000 ..8000 ..9000 ..10000 ..11000 ..12000 
+
+real	17m17.800s
+user	17m16.540s
+sys	0m0.416s
+
+before the cutoff heuristic
+
+CUTOFF = 10:
+frits@frits:~/20170627.coop_food_ingredients/ingredients$ time ./levenshtein > /dev/null
+DBG nw = 12198
+init_wordlist(): wordlist has 12198 words.
+levenshtein matrix: size 12198, doing 74389503 calculations.
+..0 ..1000 ..2000 ..3000 ..4000 ..5000 ..6000 ..7000 ..8000 ..9000 ..10000 ..11000 ..12000 
+
+real	3m37.264s
+user	3m37.176s
+sys	0m0.032s
+
+
+CUTOFF = 6:
+time ./levenshtein > /dev/null
+DBG nw = 12198
+init_wordlist(): wordlist has 12198 words.
+levenshtein matrix: size 12198, doing 74389503 calculations.
+..0 ..1000 ..2000 ..3000 ..4000 ..5000 ..6000 ..7000 ..8000 ..9000 ..10000 ..11000 ..12000 
+
+real	2m12.191s
+user	2m12.128s
+sys	0m0.032s
+
+-rw-r--r-- 1 frits frits 155M Jun 29 11:22 table.12198.levenshtein.out
+
+
+Thu Jun 29 13:39:35 CEST 2017
+parse vitamins specially: otherwise too short words:
+
+vitaminer (c, e, niacin, pantotensyra, b1, a, b6, b2, folsyra, k, d, biotin),
+
+comma-split becomes "c", "e", "a", "d" etc.
+
+
+Thu Jun 29 15:20:38 CEST 2017
+problem with my parsing chain is that I have more than 1 data stream.
+
+ingredientslist data stream becomes ingredientslist data stream + ingredients data stream
+then I process the latter (in steps)
+at the end I have to process the first again.
+
+maybe just do a "cat" as main command in the table-processing steps!
+

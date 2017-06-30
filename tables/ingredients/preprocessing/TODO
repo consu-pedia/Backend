@@ -1,0 +1,6 @@
+program is not finished but the structure looks ok to me
+11000+ ingredients much too many
+
+TODO coalesce similar strings with Levenshtein, but not those from a handpicked
+     "difference list"
+TODO extract allergy information,
