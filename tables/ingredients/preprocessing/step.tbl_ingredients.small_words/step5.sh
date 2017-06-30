@@ -68,13 +68,15 @@ cat $CURINP_INGREDIENTS |\
 # N.B. after close parenthesis is a TAB character
 cat $OUTDIR/tmp5.work | tr '\n' '|' | sed -e 's/^/^ *(/;s/|$/)	/;' > $OUTDIR/tmp5.regex
 
+# annoying bug: first ingredient is the empty string ^$
+# and nl ignores it causing an off-by-one error :-(
 cat $CURINP_INGREDIENTS |\
-  nl |\
+  nl -ba |\
   egrep -f $OUTDIR/tmp5.regex |\
   cat > $OUTDIR/tmp5.work2
 
 cat $CURINP_INGREDIENTS |\
-  nl |\
+  nl -ba |\
   egrep -v -f $OUTDIR/tmp5.regex |\
   cat > $OUTDIR/tmp5.work3
 
