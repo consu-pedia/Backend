@@ -4,3 +4,5 @@ my own parser for it.
 
 (So much for "not re-inventing the wheel", but it took less time than
 studying the HTTPFlow struct in the mitmproxy source)
+
+manual_split.sh is no longer necessary.

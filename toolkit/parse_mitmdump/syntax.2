@@ -1,0 +1,43 @@
+
+Outer loop: repeating structure of the stuff between === lines
+
+== begin outer loop ==================================================
+<4 digits dunno>:4:type;4:http;
+8:metadata;<{metadata}>
+11:client_conn;<size of client_conn>:<list of client_conn key,value fields>
+11:server_conn;<size of server_conn>:<list of server_conn key,value fields>
+
+
+next bit: parse upto and including response, hang a hook on each keyword
+
+list of key,value pairs starting with marked:
+6:marked;<value of marked>
+[7:version;<value of version>]
+[11:intercepted;<value of intercepted>]
+
+8:response;<size of response incl. content>:
+7:content;<size of content blob>:<content blob>
+7:headers;<size of headers>:
+
+list of response headers:
+  <size of header line>:<size of header name>:<header name>:<header value>,]
+TODO: multi-line headers syntax
+  ^
+
+next bit: parse upto and including request, hang a hook on each keyword
+
+list of key,value pairs starting with mode:
+4:mode;<value of mode>
+2:id;<value of id, looks like uuid>
+5:error;0:~
+
+7:request;<size of request incl. content>:
+  not studied request so well yet, looks like a list of headers starting with is_replay, scheme, port, host and path
+  followed by 7:content;0:,   (need to see a POST request to see more here)
+  7:headers;<size of headers>:
+  list of request headers
+  }}
+== end outer loop ====================================================
+
+maybe make a "context" variable that says whether we're parsing
+request, response, request headers or response headers
