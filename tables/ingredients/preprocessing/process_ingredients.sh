@@ -29,17 +29,17 @@ steps=$( echo "$steps" | sort -n -t/ -k2 )
 echo "run $now going to use the following steps:"
 ls -l $steps
 
-curinp="./inp"
+CURINP="./inp"
 CURINP_INGREDIENTS="tmp.ingredients"
 
 for s in $steps; do
   STEPNAME=$( basename "$s" |cut -d/ -f2 )
-  curoutp="$OUTDIR/out.$STEPNAME"
+  CUROUT="$OUTDIR/out.$STEPNAME"
   CUROUT_INGREDIENTS="$OUTDIR/ingredients.$STEPNAME"
-  export CURINP_INGREDIENTS CUROUT_INGREDIENTS OUTDIR STEPNAME
+  export CURINP CURINP_INGREDIENTS CUROUT CUROUT_INGREDIENTS OUTDIR STEPNAME
 
   realscript=$( ls -l $s |awk '{print $9" "$10" "$11}' )
-  echo "now running $realscript to transform $curinp to $curoutp."
+  echo "now running $realscript to transform $CURINP to $CUROUT."
   # execute!
 
   # special flags:
@@ -50,14 +50,15 @@ for s in $steps; do
     echo "the next one, $s, is interactive"
     $s
   else
-    $s < $curinp > $curoutp
+    $s < $CURINP > $CUROUT
   fi
 
-  wc $curoutp
-  curinp="$curoutp"
+  wc $CUROUT
+  CURINP="$CUROUT"
 
   if [ -s "$CUROUT_INGREDIENTS" ]; then
-    wc $CUROUT_INGREDIENTS
+    wc tmp.ingredients $CUROUT_INGREDIENTS
+    cp $CUROUT_INGREDIENTS tmp.ingredients
     CURINP_INGREDIENTS="$CUROUT_INGREDIENTS"
     # otherwise stays
   fi

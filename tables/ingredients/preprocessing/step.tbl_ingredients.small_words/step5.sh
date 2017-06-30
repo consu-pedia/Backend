@@ -80,13 +80,18 @@ cat $CURINP_INGREDIENTS |\
   egrep -v -f $OUTDIR/tmp5.regex |\
   cat > $OUTDIR/tmp5.work3
 
+# now remove the line numbers
+# N.B. sed script line 2 contains a TAB U+0009
+cat $OUTDIR/tmp5.work3 |\
+  sed -e 's/^ *[0-9][0-9]*	//' |\
+  cat > $OUTDIR/tmp5.work4
 
-# cat tmp5.01 | sort | uniq > tmp5.final
+mv $OUTDIR/tmp5.work4 $CUROUT_INGREDIENTS
 
-# wc -l tmp5.final
 
 # passthru out
 #DONT# cat tmp.smallwords.mainstream
 #DONT# rm tmp.smallwords.mainstream
+cp $CURINP $CUROUT
 
 exit 0
