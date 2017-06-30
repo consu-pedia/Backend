@@ -69,3 +69,21 @@ at the end I have to process the first again.
 
 maybe just do a "cat" as main command in the table-processing steps!
 
+
+Fri Jun 30 10:22:56 CEST 2017
+after an annoying bug that took several hours to find
+
+selection of the ingredients is now done.
+and I could write the product-ingredients table now
+next step is to coalesce the ingredients list with the levenshtein algorithm,
+boil it down from 11000 to ??
+can always make a subsequent step to re-label
+
+next 5 steps:
+
+6. write product-ingredients
+7. levenshtein
+8. similar ingredients dump
+9. similar ingredients manual edit => translation table ingredients_raw to ingredients_cooked
+10. rewrite product-ingredients to point to the smaller ingretients_cooked list
+
