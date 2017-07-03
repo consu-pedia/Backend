@@ -80,6 +80,7 @@ cat $OUTDIR/tmp6.merge.01 |\
               }' |\
   cat > $OUTDIR/tmp6.merge.03
 
+
 # TODO
 # tmp6.merge.03 table is *NOT* unique in key ( product_id, content_id)
 # so this gives a problem when inserting into MySQL
@@ -89,15 +90,12 @@ echo 'USE consupedia;' > $OUTDIR/tmp6.content_product.sql
 echo 'DELETE FROM `content_product`;'>> $OUTDIR/tmp6.content_product.sql
   # awk -F, '{printf("INSERT INTO content_product VALUES(%d, %s , %s , %s);\n", NR, $1 , $4 , $6 );}' |\
 cat $OUTDIR/tmp6.merge.03 |\
+  sort -n | uniq |\
   grep '_INGREDIENT_' |\
   tr '\037_' ',,' |\
-  awk -F, '{printf("INSERT INTO content_product VALUES(%s, %s , %s , %s);\n", "_idx_", $1 , $4 , $6 );}' |\
-  cat > $OUTDIR/tmp6.content_product.tmp01
-
-  cat $OUTDIR/tmp6.content_product.tmp01 |\
-  sort | uniq |\
-  awk -F, '{$1 = sprintf("INSERT INTO content_product VALUES(",NR);OFS=","; print}' |\
+  awk -F, '{printf("INSERT INTO content_product VALUES(%s, %s , %s , %s);\n", NR, $1 , $4 , $6 );}' |\
   cat >> $OUTDIR/tmp6.content_product.sql
+
 
 
 # sql dump contents
