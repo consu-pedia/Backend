@@ -80,11 +80,34 @@ cat $OUTDIR/tmp6.merge.01 |\
               }' |\
   cat > $OUTDIR/tmp6.merge.03
 
+# TODO
+# tmp6.merge.03 table is *NOT* unique in key ( product_id, content_id)
+# so this gives a problem when inserting into MySQL
+# needs an extra uniq step before I figure out why (tf) it is not unique in
+# the first place!
+echo 'USE consupedia;' > $OUTDIR/tmp6.content_product.sql
+echo 'DELETE FROM `content_product`;'>> $OUTDIR/tmp6.content_product.sql
+  # awk -F, '{printf("INSERT INTO content_product VALUES(%d, %s , %s , %s);\n", NR, $1 , $4 , $6 );}' |\
 cat $OUTDIR/tmp6.merge.03 |\
   grep '_INGREDIENT_' |\
   tr '\037_' ',,' |\
-  awk -F, '{printf("INSERT INTO productcontent VALUES(%s , %s);\n", $1 , $4 );}' |\
-  cat > $OUTDIR/tmp6.p-i.table
+  awk -F, '{printf("INSERT INTO content_product VALUES(%s, %s , %s , %s);\n", "_idx_", $1 , $4 , $6 );}' |\
+  cat > $OUTDIR/tmp6.content_product.tmp01
+
+  cat $OUTDIR/tmp6.content_product.tmp01 |\
+  sort | uniq |\
+  awk -F, '{$1 = sprintf("INSERT INTO content_product VALUES(",NR);OFS=","; print}' |\
+  cat >> $OUTDIR/tmp6.content_product.sql
+
+
+# sql dump contents
+echo 'USE consupedia;' > $OUTDIR/tmp6.contents.sql
+echo 'DELETE FROM `contents`;'>> $OUTDIR/tmp6.contents.sql
+cat $OUTDIR/tmp6.ingred.idx.01 |\
+  tr -d '\047' |\
+  awk -F'' '{printf("INSERT INTO contents VALUES(%s , %c%s%c);\n", $3 , 39, $2 , 39 );}' |\
+  cat >> $OUTDIR/tmp6.contents.sql
+
 
 
 # RECONSTRUCT
