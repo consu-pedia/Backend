@@ -8,7 +8,7 @@ cat |\
         if (n==2) { nn=$0; } \
        } \
        / .Content. =>/ { c=0; }\
-       / .Name. =>/ { n=0; }\
+       /^   .Name. =>/ { n=0; }\
        /^attributes/ { if (NR>2) {print nn > ofp; print cc > ofi;}; n=3;c=3;nn="UNKNOWN_PRODUCT";cc="__DELETED__";} \
        END {print nn > ofp; print cc > ofi;} \
       ' 
