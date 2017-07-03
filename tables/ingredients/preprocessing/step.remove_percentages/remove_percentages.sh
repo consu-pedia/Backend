@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TODO save percentages
+# TODO save percentages
 
 
 # line 2: change empty records to __DELETED__ and remove "^ 0 => "
