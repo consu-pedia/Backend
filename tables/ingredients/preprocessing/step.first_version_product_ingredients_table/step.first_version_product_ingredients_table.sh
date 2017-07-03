@@ -89,11 +89,12 @@ cat $OUTDIR/tmp6.merge.01 |\
 echo 'USE consupedia;' > $OUTDIR/tmp6.content_product.sql
 echo 'DELETE FROM `content_product`;'>> $OUTDIR/tmp6.content_product.sql
   # awk -F, '{printf("INSERT INTO content_product VALUES(%d, %s , %s , %s);\n", NR, $1 , $4 , $6 );}' |\
+  # awk -F, '{printf("INSERT INTO content_product VALUES(%s, %s , %s , %s);\n", NR, $1 , $4 , $6 );}' |\
 cat $OUTDIR/tmp6.merge.03 |\
   sort -n | uniq |\
   grep '_INGREDIENT_' |\
   tr '\037_' ',,' |\
-  awk -F, '{printf("INSERT INTO content_product VALUES(%s, %s , %s , %s);\n", NR, $1 , $4 , $6 );}' |\
+  awk -F, '{printf("INSERT INTO content_product SET id = %d, product_id = %s, content_id = %s, content_product_ranknr = %s;\n", NR, $1 , $4 , $6 );}' |\
   cat >> $OUTDIR/tmp6.content_product.sql
 
 
@@ -101,9 +102,10 @@ cat $OUTDIR/tmp6.merge.03 |\
 # sql dump contents
 echo 'USE consupedia;' > $OUTDIR/tmp6.contents.sql
 echo 'DELETE FROM `contents`;'>> $OUTDIR/tmp6.contents.sql
+  # awk -F'' '{printf("INSERT INTO contents VALUES(%s , %c%s%c);\n", $3 , 39, $2 , 39 );}' |\
 cat $OUTDIR/tmp6.ingred.idx.01 |\
   tr -d '\047' |\
-  awk -F'' '{printf("INSERT INTO contents VALUES(%s , %c%s%c);\n", $3 , 39, $2 , 39 );}' |\
+  awk -F'' '{printf("INSERT INTO contents SET id = %s , name = %c%s%c;\n", $3 , 39, $2 , 39 );}' |\
   cat >> $OUTDIR/tmp6.contents.sql
 
 
