@@ -87,3 +87,21 @@ next 5 steps:
 9. similar ingredients manual edit => translation table ingredients_raw to ingredients_cooked
 10. rewrite product-ingredients to point to the smaller ingretients_cooked list
 
+
+Mon Jul  3 13:51:38 CEST 2017
+interesting:
+
+
+solrosolja > 1x (product, content) so not a unique key:
+
+havregryn, inulin (fiber), veteflingor, solrosolja, torkade tranbär (tranbär, koncentrerad ananasjuice, solrosolja), solroskärnor, kokosflingor, linfrön, frystorkade jordgubbar (jordgubbar, solrosolja), salt, naturlig arom, vanilj.',
+jordnötter (jordnötter, palmolja, salt), cashewnötter (cashewnötter, palmolja, salt), honungsrostade jordnötter (jordnötter, socker, honung, palmolja, solrosolja, salt, förtjockningsmedel (e 415)), tranbär (tranbär, socker, solrosolja), blåbär (blåbär, socker, solrosolja). variationer i innehållsfördelningen kan förekomma. kan innehålla spår av andra nötter.',
+
+
+kafffe:
+
+    0 => '100% Arabica Kaffe',
+    0 => '100% Arabica Kafffe',
+    0 => 'INGREDIENSER: 100% Arabica Kaffe.',
+
+
