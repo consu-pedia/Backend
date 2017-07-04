@@ -23,7 +23,7 @@ char **init_wordlist(const char *wordlistfname, int *return_nw)
   int w, nw = 0;
   char **wl = NULL;
   FILE *wlf = NULL;
-  char line[4096+1], *curw;
+  char line[4096+1], *curw, *chomp;
   *return_nw = 0;
   line[4096]='\0';
 
@@ -56,6 +56,9 @@ char **init_wordlist(const char *wordlistfname, int *return_nw)
     curw = fgets(line, 4096, wlf);
     if (strlen(line)==4096){
       fprintf(stderr,"WARNING entry # %d truncated to 4096 bytes\n", w);
+    } else {
+      chomp = &curw[strlen(curw)-1];
+      if (*chomp == '\n') { *chomp = '\0'; }
     }
     wl[w] = strdup(curw);
   }
@@ -180,8 +183,8 @@ int parse_matrix_and_print_pairs(const int nw, char **wl, int co)
   }
   
 
-  for(x=0;x<nw;x++){
-    fprintf(stderr,"DBG parsing for x = %d\n",x);
+  for(x=0;x<nw-1;x++){
+    //DBG fprintf(stderr,"DBG parsing for x = %d\n",x);
     stdinline[0]='\0';
     fgets(stdinline, 65536, stdin);
     if (feof(stdin)||(stdinline[0]=='\0') )break;
@@ -200,7 +203,9 @@ int parse_matrix_and_print_pairs(const int nw, char **wl, int co)
     if (dist < co){
       print_pair(stdout, dist, x, y);
     }
+    // fprintf(stdout,"DBG dist[%d][%d]= %d\n",x,y,dist);
     
+    y++;
     for(; y < nw; y++){
       curystring = strtok(NULL, "\t");
       if (curystring == NULL) break;
@@ -209,10 +214,11 @@ int parse_matrix_and_print_pairs(const int nw, char **wl, int co)
       if (dist < co){
         print_pair(stdout, dist, x, y);
       }
+      //DBG fprintf(stdout,"DBG dist[%d][%d]= %d\n",x,y,dist);
     }
 
   } /* next x */
-  if (x<nw){
+  if (x<nw-1){
     fprintf(stderr,"ERROR premature end of x = %d (out of %d)\n",x, nw);
   }
 

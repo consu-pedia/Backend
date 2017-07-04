@@ -23,7 +23,7 @@ char **init_wordlist(const char *wordlistfname, int *return_nw)
   int w, nw = 0;
   char **wl = NULL;
   FILE *wlf = NULL;
-  char line[4096+1], *curw;
+  char line[4096+1], *curw, *chomp;
   *return_nw = 0;
   line[4096]='\0';
 
@@ -56,6 +56,9 @@ char **init_wordlist(const char *wordlistfname, int *return_nw)
     curw = fgets(line, 4096, wlf);
     if (strlen(line)==4096){
       fprintf(stderr,"WARNING entry # %d truncated to 4096 bytes\n", w);
+    } else {
+      chomp = &curw[strlen(curw)-1];
+      if (*chomp == '\n') { *chomp = '\0'; }
     }
     wl[w] = strdup(curw);
   }
@@ -99,7 +102,8 @@ int levenshtein(const char *s1, const char *s2) {
     s1len = strlen(s1);
     s2len = strlen(s2);
     matrix = (unsigned int **) malloc((s2len+1) * sizeof(unsigned int *));
-    for(x=0;x<s2len+1;x++){ matrix[x] = (unsigned int *) malloc((s1len+1) * sizeof(unsigned int)); }
+    if (matrix==NULL) exit(1);
+    for(x=0;x<s2len+1;x++){ matrix[x] = (unsigned int *) malloc((s1len+1) * sizeof(unsigned int)); if (matrix[x] == NULL) {exit(1);}; memset(matrix[x], 0x00, (s1len+1) * sizeof(unsigned int)); }
     matrix[0][0] = 0;
     for (x = 1; x <= s2len; x++)
         matrix[x][0] = matrix[x-1][0] + 1;
