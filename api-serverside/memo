@@ -1,0 +1,6 @@
+Mon Jul 17 13:04:56 CEST 2017
+
+begin implementing the backend in Go.
+
+first step: learn a bit about go-sql-driver/mysql
+
