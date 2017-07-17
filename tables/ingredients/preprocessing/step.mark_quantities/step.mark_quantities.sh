@@ -17,11 +17,12 @@ cat |\
   sed -e 's?\(^\|[^a-z]\)\([1-9]/[1-9]\) ?QUANT_\2_QUANT?g;' |\
   sed -e 's?\(^\|[^a-z0-9]\)\(¼\|½\|¾\)? QUANT_\2_QUANT?g;' |\
   sed -e 's?\(^\|[^a-z]\)\([1-9][0-9]*\) *\(¼\|½\|¾\)? QUANT_\2\3_QUANT?g;' |\
+  sed -e 's?\(^\|[^a-z0-9]\)\([0-9][0-9]*\) *, *\([0-9][0-9]*\)\([^0-9]\|$\)? QUANT_\2,\3_QUANT\4?g;' |\
   sed -e 's?\(^\|[^a-z]\)\([1-9][0-9]*\) ? QUANT_\2_QUANT?g;' |\
-  sed -e 's?\(^\|[^a-z]\)\([1-9][0-9]*\) *\(g\|mg\|kg\|ml\)\( \|[^0-9a-z]\)? QUANT_\2_QUANT UNIT_\3_UNIT\4?g;' |\
+  sed -e 's?\(^\|[^a-z]\)\([1-9][0-9]*\) *\(g\|mg\|kg\|ml\|dl\)\( \|[^0-9a-z]\)? QUANT_\2_QUANT UNIT_\3_UNIT\4?g;' |\
   sed -e 's/QUANT *\(msk\|tsk\|skvätt\|stor klick\|klyfta\|st\) /QUANT UNIT_\1_UNIT /g;' |\
-  sed -e 's/QUANT *\(dl\|mg\|g\|kg\|liter\)\( \|[^0-9a-z]\)/QUANT UNIT_\1_UNIT /g;' |\
-  sed -e 's?UNIT/ *[0-9]* *\(kg\|ml\)?UNIT UNITFRAC_\1_UNITFRAC ?g' |\
+  sed -e 's/QUANT *\(ml\|dl\|mg\|g\|kg\|liter\)\( \|[^0-9a-z]\)/QUANT UNIT_\1_UNIT /g;' |\
+  sed -e 's?UNIT/ *[0-9]* *\(kg\|ml\|dl\)?UNIT UNITFRAC_\1_UNITFRAC ?g' |\
   sed -e 's/QUANT\([^ ]\)/QUANT \1/g' |\
   cat
 

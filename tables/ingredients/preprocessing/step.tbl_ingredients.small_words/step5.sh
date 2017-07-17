@@ -13,6 +13,9 @@ SMALLWORD=4
 # 120 tmp5.whitelist
 #   1 unsure :-)
 
+if [ "$EDITOR" = "" ]; then
+  EDITOR=vi
+fi
 
 eecho()
 {
