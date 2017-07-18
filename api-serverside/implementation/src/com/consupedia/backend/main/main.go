@@ -6,9 +6,9 @@ import (
 )
 
 func main() {
-	fmt.Printf("main program begins")
+	fmt.Printf("main program begins\n")
 
 	backend.Webserver() // doesnt return !
 
-	fmt.Printf("main program exits")
+	fmt.Printf("main program exits\n")
 }
