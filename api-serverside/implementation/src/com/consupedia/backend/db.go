@@ -20,7 +20,7 @@ func Initproductsdb() *sql.DB {
 	return (db)
 }
 
-func getproductrecord(id int) (err error) {
+func Getproductsrecord(db *sql.DB, id int) (name string, err error) {
 	// from documentation https://github.com/go-sql-driver/mysql/blob/master/README.md#dsn-data-source-name:
 	// DSN (Data Source Name)
 	// The Data Source Name has a common format, like e.g. PEAR DB uses it, but without type-prefix (optional parts marked by squared brackets):
@@ -28,32 +28,34 @@ func getproductrecord(id int) (err error) {
 	// A DSN in its fullest form:
 	// username:password@protocol(address)/dbname?param=value
 	// Except for the databasename, all values are optional. So the minimal DSN is: /dbname
-	db := Initproductsdb()
+	//	db := Initproductsdb()
 
-	// stmt, err := db.Prepare("SELECT id, name FROM products WHERE id = ?")
-	stmt, err := db.Prepare("SELECT id, name FROM products")
+	stmt, err := db.Prepare("SELECT id, name FROM products WHERE id = ?")
+	// stmt, err := db.Prepare("SELECT id, name FROM products")
 	if err != nil {
 		panic(err)
 	}
 
 	// id_in := 1
+	id_in := id
 
-	// rows, err := stmt.Query(id_in)
-	rows, err := stmt.Query()
+	name = "FUBAR"
+	rows, err := stmt.Query(id_in)
+	// rows, err := stmt.Query()
 	if err != nil {
 		panic(err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
-		var id int
-		var name string
-		err = rows.Scan(&id, &name)
+		var colid int
+		err = rows.Scan(&colid, &name)
 		if err != nil {
 			panic(err)
 		}
 
-		fmt.Printf("just read record %v name %v\n", id, name)
+		fmt.Printf("just read record %v name %v\n", colid, name)
+		return name, nil
 	}
 	err = rows.Err()
 	if err != nil {
@@ -62,6 +64,6 @@ func getproductrecord(id int) (err error) {
 
 	db.Close()
 
-	return (err)
+	return "some error", err
 
 }

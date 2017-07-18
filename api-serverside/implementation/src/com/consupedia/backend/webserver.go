@@ -9,6 +9,8 @@ import (
 
 var Allpathsregexp = regexp.MustCompile("^/products")
 
+var Productsdb *sql.DB = nil
+
 func webserverproductshandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "<html><body>\n")
 	fmt.Fprintf(w, "products dispatcher here see if works %s %s", r.URL, r.URL.Path[1:])
@@ -24,6 +26,8 @@ func webserverproductshandler(w http.ResponseWriter, r *http.Request) {
 	if qid != nil {
 		fmt.Fprintf(w, "<br/>DBG q has key id value %v\n", qid)
 	}
+
+	name, err := Getproductsrecord(Productsdb, qid)
 
 	//	if (matchthis.len >= 9){
 	//          testslice := matchthis.URL[0:8]
@@ -50,8 +54,8 @@ func webserverresthandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func Webserver(dummyproddb *sql.DB) {
-	_ = dummyproddb
+func Webserver(proddb *sql.DB) {
+	Productsdb = proddb
 	http.HandleFunc("/products", webserverproductshandler)
 	http.HandleFunc("/", webserverresthandler)
 	http.ListenAndServe(":1752", nil)
