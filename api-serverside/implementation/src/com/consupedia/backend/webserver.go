@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strconv"
 )
 
 var Allpathsregexp = regexp.MustCompile("^/products")
@@ -25,9 +26,18 @@ func webserverproductshandler(w http.ResponseWriter, r *http.Request) {
 	qid := q["id"]
 	if qid != nil {
 		fmt.Fprintf(w, "<br/>DBG q has key id value %v\n", qid)
-	}
 
-	name, err := Getproductsrecord(Productsdb, qid)
+		id64, err := strconv.ParseInt(qid[0], 10, 32)
+		if err != nil {
+			panic(err)
+		}
+		var id int = int(id64)
+		name, err := Getproductsrecord(Productsdb, id)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Fprintf(w, "<br/>DBG seems to have worked, name = &lt;%s&gt;\n", name)
+	}
 
 	//	if (matchthis.len >= 9){
 	//          testslice := matchthis.URL[0:8]
