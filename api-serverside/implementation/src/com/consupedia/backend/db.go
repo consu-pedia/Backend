@@ -1,4 +1,4 @@
-package main
+package backend
 
 import (
 	"database/sql"
@@ -6,7 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func main() {
+func getproductrecord(id int) (err error) {
 	// from documentation https://github.com/go-sql-driver/mysql/blob/master/README.md#dsn-data-source-name:
 	// DSN (Data Source Name)
 	// The Data Source Name has a common format, like e.g. PEAR DB uses it, but without type-prefix (optional parts marked by squared brackets):
@@ -57,5 +57,7 @@ func main() {
 	}
 
 	db.Close()
+
+	return (err)
 
 }

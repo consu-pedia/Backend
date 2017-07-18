@@ -4,3 +4,7 @@ begin implementing the backend in Go.
 
 first step: learn a bit about go-sql-driver/mysql
 
+Tue Jul 18 08:35:23 CEST 2017
+First tests work, you have to install the following packages on Devuan Linux:
+golang-1.8
+golang-github-go-sql-driver-mysql-dev

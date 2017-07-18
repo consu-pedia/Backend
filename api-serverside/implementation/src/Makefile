@@ -1,13 +1,13 @@
 SQLGOPATH=/usr/share/gocode/
-PWD=$(shell pwd)
+PWD1UP=$(shell dirname $$PWD)
 PKG=com/consupedia/backend
-SRCS=main.go
+SRCS=db.go webserver.go main/main.go
 
 all:
-	GOPATH=$(PWD):$(SQLGOPATH) go build com/consupedia/backend/main.go 
+	for s in $(SRCS); do GOPATH=$(PWD1UP):$(SQLGOPATH) go build $(PKG)/$$s; done
 
 fmt:
-	for s in $(SRCS); do GOPATH=$(PWD):$(SQLGOPATH) go fmt $(PKG)/$$s; done
+	for s in $(SRCS); do GOPATH=$(PWD1UP):$(SQLGOPATH) go fmt $(PKG)/$$s; done
 
 clean:
 	rm -f ./main
