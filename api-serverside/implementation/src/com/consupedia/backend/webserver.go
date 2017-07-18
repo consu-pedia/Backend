@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -49,7 +50,8 @@ func webserverresthandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func Webserver() {
+func Webserver(dummyproddb *sql.DB) {
+	_ = dummyproddb
 	http.HandleFunc("/products", webserverproductshandler)
 	http.HandleFunc("/", webserverresthandler)
 	http.ListenAndServe(":1752", nil)

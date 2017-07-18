@@ -8,7 +8,9 @@ import (
 func main() {
 	fmt.Printf("main program begins\n")
 
-	backend.Webserver() // doesnt return !
+	proddb := backend.Initproductsdb()
+
+	backend.Webserver(proddb) // doesnt return !
 
 	fmt.Printf("main program exits\n")
 }
