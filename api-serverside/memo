@@ -8,3 +8,10 @@ Tue Jul 18 08:35:23 CEST 2017
 First tests work, you have to install the following packages on Devuan Linux:
 golang-1.8
 golang-github-go-sql-driver-mysql-dev
+
+
+Tue Jul 18 15:19:22 CEST 2017
+study http://jsonapi.org/
+I like the suggestion of using MIME type application/vnd.api+json
+and HTTP returns status codes so we use them.
+
