@@ -28,11 +28,11 @@ type Productstruct struct {
 type Containerstruct struct {
 	Type       string         `json:"type"`
 	Errorrec   *Errorstruct   `json:"record",omitempty`
-	Productrec *Productstruct `json:"record"`
+	Productrec *Productstruct `json:"record",omitempty`
 }
 
 type Container struct {
-  Records []Containerstruct
+	Records []Containerstruct
 }
 
 func Makejson(c []Containerstruct) (jsonbytes []byte, err error) {
@@ -52,26 +52,25 @@ func newErrorstruct(message string) (ep *Errorstruct) {
 }
 
 func NewJsonContainer() *Container {
-  // var c Container = Container{ Records: make([]Containerstruct, 0, 16) };
-//  var newrecords [:]Containerstruct
-  // var c Container = Container{ Records: &newrecords };
- rs := new([]Containerstruct);
-  var c Container = Container{ Records: *rs };
+	// var c Container = Container{ Records: make([]Containerstruct, 0, 16) };
+	//  var newrecords [:]Containerstruct
+	// var c Container = Container{ Records: &newrecords };
+	rs := new([]Containerstruct)
+	var c Container = Container{Records: *rs}
 
-fmt.Printf("DBG: in NewJsonContainer()\n");
-  
-  return &c
+	fmt.Printf("DBG: in NewJsonContainer()\n")
+
+	return &c
 }
 
-
 // N.B. I'm using method declaration here, see https://golang.org/ref/spec#Method_declarations
-func (c *Container) AddProductRecord(id int, name string) (*Container) {
-  var pp *Productstruct = newProductstruct(id, name)
+func (c *Container) AddProductRecord(id int, name string) *Container {
+	var pp *Productstruct = newProductstruct(id, name)
 
-  // see paragraph "Appending to and copying slices" in golang language ref doc
-  c.Records = append(c.Records, Containerstruct{Type: pp.Type, Productrec: pp})
-  
-fmt.Printf("DBG: after AddProductRecord(%v) c.Records = %v\n", pp, c.Records);
+	// see paragraph "Appending to and copying slices" in golang language ref doc
+	c.Records = append(c.Records, Containerstruct{Type: pp.Type, Productrec: pp})
 
-  return c // for chaining
+	fmt.Printf("DBG: after AddProductRecord(%v) c.Records = %v\n", pp, c.Records)
+
+	return c // for chaining
 }
