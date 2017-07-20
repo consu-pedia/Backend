@@ -6,7 +6,7 @@ MORESRCS=main/main.go
 
 #	for s in $(SRCS); do GOPATH=$(PWD1UP):$(SQLGOPATH) go build $(PKG)/$$s; done
 
-all:	main
+all:	clean main test
 
 main:
 	GOPATH=$(PWD1UP):$(SQLGOPATH) go build $(PKG)
@@ -15,6 +15,9 @@ main:
 
 fmt:
 	for s in $(SRCS) $(MORESRCS); do GOPATH=$(PWD1UP):$(SQLGOPATH) go fmt $(PKG)/$$s; done
+
+test:	./main
+	./main
 
 clean:
 	rm -f ./main

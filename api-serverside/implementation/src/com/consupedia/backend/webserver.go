@@ -37,6 +37,19 @@ func webserverproductshandler(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 		fmt.Fprintf(w, "<br/>DBG seems to have worked, name = &lt;%s&gt;\n", name)
+
+// create JSON response
+var responsecontainer *Container = nil;
+responsecontainer = NewJsonContainer().AddProductRecord(id, name )
+
+jsonbytes, err := Makejson(responsecontainer.Records)
+if (err != nil) {
+  fmt.Fprintf(w, "<br/>something very wrong in json creation: %s\n", err)
+} else {
+  jsonstring := string(jsonbytes)
+  fmt.Fprintf(w, "<br/>DBG JSON = \"%s\"\n", jsonstring);
+}
+
 	}
 
 	//	if (matchthis.len >= 9){

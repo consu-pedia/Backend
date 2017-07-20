@@ -10,6 +10,8 @@ func main() {
 
 	proddb := backend.Initproductsdb()
 
+	fmt.Printf("webserver starts\n")
+
 	backend.Webserver(proddb) // doesnt return !
 
 	fmt.Printf("main program exits\n")
