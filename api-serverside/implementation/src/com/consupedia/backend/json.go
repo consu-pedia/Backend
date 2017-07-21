@@ -29,8 +29,8 @@ type Productstructp *Productstruct
 // and be distinguished only by different values of "type"
 type Containerstruct struct {
 	Type       string         `json:"type"`
-	Errorrec   *Errorstruct   `json:"error",omitempty`
-	Productrec Productstructp `json:"entity",omitempty`
+	Errorrec   *Errorstruct   `json:"error,omitempty"`
+	Productrec Productstructp `json:"entity,omitempty"`
 }
 
 type Container struct {
