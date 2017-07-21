@@ -23,12 +23,14 @@ type Productstruct struct {
 	Name string `json:name`
 }
 
+type Productstructp *Productstruct
+
 // N.B. all records must have the same JSON record name "record"
 // and be distinguished only by different values of "type"
 type Containerstruct struct {
 	Type       string         `json:"type"`
-	Errorrec   *Errorstruct   `json:"record",omitempty`
-	Productrec *Productstruct `json:"record",omitempty`
+	Errorrec   *Errorstruct   `json:"error",omitempty`
+	Productrec Productstructp `json:"entity",omitempty`
 }
 
 type Container struct {
@@ -41,9 +43,10 @@ func Makejson(c []Containerstruct) (jsonbytes []byte, err error) {
 	return jsonbytes, err
 }
 
-func newProductstruct(id int, name string) (pp *Productstruct) {
+func newProductstruct(id int, name string) (pp Productstructp) {
 	p := Productstruct{Type: TYPE_PRODUCT, Id: fmt.Sprintf("%d", id), Name: name}
-	return &p
+        pp = &p
+	return pp
 }
 
 func newErrorstruct(message string) (ep *Errorstruct) {
@@ -65,7 +68,7 @@ func NewJsonContainer() *Container {
 
 // N.B. I'm using method declaration here, see https://golang.org/ref/spec#Method_declarations
 func (c *Container) AddProductRecord(id int, name string) *Container {
-	var pp *Productstruct = newProductstruct(id, name)
+	var pp Productstructp = newProductstruct(id, name)
 
 	// see paragraph "Appending to and copying slices" in golang language ref doc
 	c.Records = append(c.Records, Containerstruct{Type: pp.Type, Productrec: pp})
