@@ -45,7 +45,7 @@ func Makejson(c []Containerstruct) (jsonbytes []byte, err error) {
 
 func newProductstruct(id int, name string) (pp Productstructp) {
 	p := Productstruct{Type: TYPE_PRODUCT, Id: fmt.Sprintf("%d", id), Name: name}
-        pp = &p
+	pp = &p
 	return pp
 }
 

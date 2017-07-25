@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"os"
 )
 
 func Initproductsdb() *sql.DB {
@@ -15,6 +16,7 @@ func Initproductsdb() *sql.DB {
 	// sql.Open() is lazy so ping
 	err = db.Ping()
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "ERROR: could not connect to Consuweb MySQL DB, quitting.\n")
 		panic(err)
 	}
 	return (db)
