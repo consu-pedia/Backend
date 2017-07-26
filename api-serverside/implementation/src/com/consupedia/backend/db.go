@@ -7,6 +7,8 @@ import (
 	"os"
 )
 
+// N.B. variable DEBUG is declared in webserver.go
+
 func Initproductsdb() *sql.DB {
 	db, err := sql.Open("mysql", "root:@tcp(10.60.218.110:3306)/consuweb?charset=utf8")
 	if err != nil {
@@ -94,7 +96,9 @@ func Getproductsquery(db *sql.DB, wherestring string) (rows *sql.Rows, err error
 	//		panic(err)
 	//	}
 
-	fmt.Printf("<br/>DBG executing DB query \"%s\"\n", querystring)
+	if DEBUG {
+		fmt.Printf("<br/>DBG executing DB query \"%s\"\n", querystring)
+	}
 	// the form of the query depends on "utökad sökning" and can
 	// therefore not be prepared beforehand. Then we might as well
 	// call it directly from the db, as well.

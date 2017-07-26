@@ -8,6 +8,7 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 var Allpathsregexp = regexp.MustCompile("^/api/v1/products")
@@ -17,7 +18,7 @@ var Productsdb *sql.DB = nil
 
 var PRODUCTSAPI string = "/api/v1/products"
 
-var DEBUG bool = true
+var DEBUG bool = false
 
 // API "endpoint" /api/v1/products
 // provides the following x functions:
@@ -67,37 +68,49 @@ func singleproductquery(w http.ResponseWriter, productid int) (err error) {
 	return err
 }
 
-func addnameclause(wherestring string, v []string) {
-	if wherestring == "" {
-		wherestring += " WHERE "
-	} else {
+func addnameclause(wherestring string, v []string) (res string) {
+	if DEBUG {
+		fmt.Printf("\n\n\naddnameclause(%s)\n\n\n", v[0])
+	}
+	nameWithAsterisks := v[0]
+	var squot int = 0x27 // single quote
+
+	if wherestring != "" {
 		wherestring += " AND "
 	}
-	var nameclause string
-	fmt.Sprintf(nameclause, "name = %v", v[0])
+
+	// replace asterisks U+002A with % as wildcard
+	nameWithPercent := strings.Replace(nameWithAsterisks, "*", "%", -1)
+	var nameclause string = fmt.Sprintf("name LIKE %c%v%c", squot, nameWithPercent, squot)
 	wherestring += nameclause
+	return wherestring
 }
 
 func multiproductconstructwherestring(w http.ResponseWriter, q url.Values) (wherestring string, err error) {
 
-	wherestring = "TODO TODO TODO"
+	wherestring = ""
 
 	if DEBUG {
 		fmt.Fprintf(w, "<br/>\nmultiproductconstructwherestring() DBG q &lt;%s&gt;\n", q)
 	}
 
 	for k, v := range q {
-		fmt.Fprintf(w, "<br/>DBG k=\"%v\" v=\"%v\"\n", k, v)
+		if DEBUG {
+			fmt.Fprintf(w, "<br/>DBG k=\"%v\" v=\"%v\"\n", k, v)
+		}
 
 		switch k {
 		case "name":
-			addnameclause(wherestring, v)
+			wherestring = addnameclause(wherestring, v)
+
 		default:
 			fmt.Fprintf(w, "<br/>ERROR multiproductconstructwherestring(): UNIMPLEMENTED key %v\n", k)
 		}
 	} // next k,v pair from q
 
-	fmt.Printf("<br/>DBG wherestring now %c%s%c\n", 0x27, wherestring, 0x27)
+	if DEBUG {
+		fmt.Printf("<br/>DBG wherestring now %c%s%c\n", 0x27, wherestring, 0x27)
+	}
 	//
 	// 	// q is a map like Values
 	// 	qid := q["id"]
@@ -130,12 +143,14 @@ func multiproductquery(w http.ResponseWriter, q url.Values, reststring string) (
 	var jsonbytes []byte = nil
 	var rc int = 0
 
-	fmt.Fprintf(w, "<br/>ERROR STUB API FUNCTION: method get + not productidprovided, reststring= \"%s\"\n", reststring)
+	if DEBUG {
+		fmt.Fprintf(w, "<br/>ERROR STUB UNFINISHED API FUNCTION: method get + not productidprovided, reststring= \"%s\"\n", reststring)
+	}
 	fmt.Printf("<br/>ERROR STUB API FUNCTION: method get + not productidprovided, reststring= \"%s\"\n", reststring)
 
 	var rows *sql.Rows = nil
 
-	fmt.Printf("COMMENTED OUT wherestring\n") // wherestring, err = multiproductconstructwherestring(w, q)
+	wherestring, err = multiproductconstructwherestring(w, q)
 
 	if err != nil {
 		panic(err)
@@ -163,7 +178,7 @@ func multiproductquery(w http.ResponseWriter, q url.Values, reststring string) (
 			fmt.Fprintf(w, "<br/># %d %d %s\n", rc, productid, name)
 		}
 		productrec := NewProductstruct(productid, name)
-		fmt.Fprintf(w, "<br/>DBG need type of productrec %v\n", productrec)
+
 		productslice = append(productslice, *productrec)
 
 		// add to array of Product
@@ -179,11 +194,10 @@ func multiproductquery(w http.ResponseWriter, q url.Values, reststring string) (
 	}
 	jsonbytes, err = Makejson(productslice)
 
-	fmt.Fprintf(w, "<br/><br/>HERE IT COMES: %d<br/>\n", rc)
-	jsonstring := string(jsonbytes)
 	if DEBUG {
-		fmt.Fprintf(w, "<br/>DBG JSON = \"%s\"\n", jsonstring)
+		fmt.Fprintf(w, "<br/><br/>HERE IT COMES: %d<br/>\n", rc)
 	}
+	jsonstring := string(jsonbytes)
 	fmt.Fprintf(w, "%s\n", jsonstring)
 
 	// assert(rc>0)
@@ -251,8 +265,6 @@ func webserverproductshandler(w http.ResponseWriter, r *http.Request) {
 		return
 
 	} // endif (GET and productidprovided)
-
-	fmt.Printf("does it do ANYTHING\n")
 
 	if (r.Method == "GET") && (!productidprovided) { // multi product query
 		err := multiproductquery(w, r.URL.Query(), reststring)
