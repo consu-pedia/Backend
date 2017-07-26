@@ -70,28 +70,60 @@ func singleproductquery(w http.ResponseWriter, productid int) (err error) {
 func multiproductquery(w http.ResponseWriter, reststring string) (err error) {
 	err = nil
 	var wherestring string = ""
+	var productslice []Productstruct = nil
+	var jsonbytes []byte = nil
+	var rc int = 0
 
 	fmt.Fprintf(w, "<br/>ERROR STUB API FUNCTION: method get + not productidprovided, reststring= \"%s\"\n", reststring)
 
 	var rows *sql.Rows = nil
 
 	rows, err = Getproductsquery(Productsdb, wherestring)
+	defer rows.Close()
 
 	if err != nil {
 		fmt.Fprintf(w, "<br/>ERROR query with wherestring %s FAILED: %v\n", wherestring, err)
-	} else {
-		// grmbl grmbl why nothing faster
-		var rc int = 0
-		for rows.Next() {
+		return
+	}
 
-			var id int
-			var name string
-			err = rows.Scan(&id, &name)
-			fmt.Fprintf(w, "<br/># %d %d %s\n", rc, id, name)
-			rc++
+	// grmbl grmbl why nothing faster
+	for rows.Next() {
+
+		var productid int
+		var name string
+		err = rows.Scan(&productid, &name)
+		if err != nil {
+			rc = -1
+			break
 		}
+		if DEBUG {
+			fmt.Fprintf(w, "<br/># %d %d %s\n", rc, productid, name)
+		}
+		productrec := NewProductstruct(productid, name)
+		fmt.Fprintf(w, "<br/>DBG need type of productrec %v\n", productrec)
+		productslice = append(productslice, *productrec)
+
+		// add to array of Product
+
+		rc++
+	}
+	if DEBUG {
 		fmt.Fprintf(w, "<br/>INFO query with wherestring %s success: %d recs\n", wherestring, rc)
 	}
+
+	if rc == 0 {
+		fmt.Fprintf(w, "<br/>WARNING empty result\n")
+	}
+	jsonbytes, err = Makejson(productslice)
+
+	fmt.Fprintf(w, "<br/><br/>HERE IT COMES: %d<br/>\n", rc)
+	jsonstring := string(jsonbytes)
+	if DEBUG {
+		fmt.Fprintf(w, "<br/>DBG JSON = \"%s\"\n", jsonstring)
+	}
+	fmt.Fprintf(w, "%s\n", jsonstring)
+
+	// assert(rc>0)
 
 	return err
 }

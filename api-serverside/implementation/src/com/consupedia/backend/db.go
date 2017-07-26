@@ -85,19 +85,27 @@ func Getproductsquery(db *sql.DB, wherestring string) (rows *sql.Rows, err error
 		var sanitized_wherestring string = wherestring // TODO
 		querystring = querystring + " WHERE " + sanitized_wherestring
 	}
-	stmt, err := db.Prepare(querystring)
-	// stmt, err := db.Prepare("SELECT id, name FROM products")
-	if err != nil {
-		panic(err)
-	}
 
-	rows, err = stmt.Query()
+	querystring += ";"
+
+	//	stmt, err := db.Prepare(querystring)
+	// stmt, err := db.Prepare("SELECT id, name FROM products")
+	//	if err != nil {
+	//		panic(err)
+	//	}
+
+	fmt.Printf("<br/>DBG executing DB query \"%s\"\n", querystring)
+	// the form of the query depends on "utökad sökning" and can
+	// therefore not be prepared beforehand. Then we might as well
+	// call it directly from the db, as well.
+	rows, err = db.Query(querystring)
 	// rows, err := stmt.Query()
 	if err != nil {
 		panic(err)
 	}
-	defer rows.Close()
+	//	defer rows.Close()
 
+	//	stmt.Close()
 	//	db.Close()
 	return rows, err
 
