@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 )
@@ -65,9 +67,63 @@ func singleproductquery(w http.ResponseWriter, productid int) (err error) {
 	return err
 }
 
+func addnameclause(wherestring string, v []string) {
+	if wherestring == "" {
+		wherestring += " WHERE "
+	} else {
+		wherestring += " AND "
+	}
+	var nameclause string
+	fmt.Sprintf(nameclause, "name = %v", v[0])
+	wherestring += nameclause
+}
+
+func multiproductconstructwherestring(w http.ResponseWriter, q url.Values) (wherestring string, err error) {
+
+	wherestring = "TODO TODO TODO"
+
+	if DEBUG {
+		fmt.Fprintf(w, "<br/>\nmultiproductconstructwherestring() DBG q &lt;%s&gt;\n", q)
+	}
+
+	for k, v := range q {
+		fmt.Fprintf(w, "<br/>DBG k=\"%v\" v=\"%v\"\n", k, v)
+
+		switch k {
+		case "name":
+			addnameclause(wherestring, v)
+		default:
+			fmt.Fprintf(w, "<br/>ERROR multiproductconstructwherestring(): UNIMPLEMENTED key %v\n", k)
+		}
+	} // next k,v pair from q
+
+	fmt.Printf("<br/>DBG wherestring now %c%s%c\n", 0x27, wherestring, 0x27)
+	//
+	// 	// q is a map like Values
+	// 	qid := q["id"]
+	// 	if qid != nil {
+	// 		if DEBUG {
+	// 			fmt.Fprintf(w, "<br/>DBG q has key id value %v\n", qid)
+	// 		}
+	//
+	// 		id64, err := strconv.ParseInt(qid[0], 10, 32)
+	// 		if err != nil {
+	// 			panic(err)
+	// 		}
+	// 		var productid int = int(id64)
+
+	// 	}
+
+	//	if (matchthis.len >= 9){
+	//          testslice := matchthis.URL[0:8]
+	//fmt.Printf("DBG testslice <%s> of <%s>\n", testslice, matchthis)
+	//        }
+	return wherestring, err
+}
+
 // implementation:
 // in principle dump the whole table, with a SQL search query limited by the ? attributes
-func multiproductquery(w http.ResponseWriter, reststring string) (err error) {
+func multiproductquery(w http.ResponseWriter, q url.Values, reststring string) (err error) {
 	err = nil
 	var wherestring string = ""
 	var productslice []Productstruct = nil
@@ -75,8 +131,15 @@ func multiproductquery(w http.ResponseWriter, reststring string) (err error) {
 	var rc int = 0
 
 	fmt.Fprintf(w, "<br/>ERROR STUB API FUNCTION: method get + not productidprovided, reststring= \"%s\"\n", reststring)
+	fmt.Printf("<br/>ERROR STUB API FUNCTION: method get + not productidprovided, reststring= \"%s\"\n", reststring)
 
 	var rows *sql.Rows = nil
+
+	fmt.Printf("COMMENTED OUT wherestring\n") // wherestring, err = multiproductconstructwherestring(w, q)
+
+	if err != nil {
+		panic(err)
+	}
 
 	rows, err = Getproductsquery(Productsdb, wherestring)
 	defer rows.Close()
@@ -132,6 +195,7 @@ func webserverproductshandler(w http.ResponseWriter, r *http.Request) {
 	var productidprovided bool = false
 	var productid int
 	var reststring string = ""
+	fmt.Fprintf(os.Stderr, "starting webserver\n")
 	if DEBUG {
 		fmt.Fprintf(w, "<html><body>\n")
 		fmt.Fprintf(w, "products dispatcher here see if works %s %s", r.URL, r.URL.Path[1:])
@@ -188,40 +252,16 @@ func webserverproductshandler(w http.ResponseWriter, r *http.Request) {
 
 	} // endif (GET and productidprovided)
 
+	fmt.Printf("does it do ANYTHING\n")
+
 	if (r.Method == "GET") && (!productidprovided) { // multi product query
-		err := multiproductquery(w, reststring)
+		err := multiproductquery(w, r.URL.Query(), reststring)
 		if err != nil {
 			fmt.Fprintf(w, "<br/>TODO error from multiproductquery()\n")
 		}
 		return
 
 	} // endif (GET and not productidprovided)
-
-	// obsolete for now
-	// 	q := r.URL.Query()
-	// 	if DEBUG {
-	// 		fmt.Fprintf(w, "<br/>\nDBG q &lt;%s&gt;\n", q)
-	// 	}
-	//
-	// 	// q is a map like Values
-	// 	qid := q["id"]
-	// 	if qid != nil {
-	// 		if DEBUG {
-	// 			fmt.Fprintf(w, "<br/>DBG q has key id value %v\n", qid)
-	// 		}
-	//
-	// 		id64, err := strconv.ParseInt(qid[0], 10, 32)
-	// 		if err != nil {
-	// 			panic(err)
-	// 		}
-	// 		var productid int = int(id64)
-
-	// 	}
-
-	//	if (matchthis.len >= 9){
-	//          testslice := matchthis.URL[0:8]
-	//fmt.Printf("DBG testslice <%s> of <%s>\n", testslice, matchthis)
-	//        }
 
 	fmt.Fprintf(w, "<br/>ERROR UNIMPLEMENTED API FUNCTION: method %s + productidprovided? %v\n", r.Method, productidprovided)
 
