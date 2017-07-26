@@ -69,3 +69,36 @@ func Getproductsrecord(db *sql.DB, id int) (name string, err error) {
 	return "some error", err
 
 }
+
+func Getproductsquery(db *sql.DB, wherestring string) (rows *sql.Rows, err error) {
+	// from documentation https://github.com/go-sql-driver/mysql/blob/master/README.md#dsn-data-source-name:
+	// DSN (Data Source Name)
+	// The Data Source Name has a common format, like e.g. PEAR DB uses it, but without type-prefix (optional parts marked by squared brackets):
+	// [username[:password]@][protocol[(address)]]/dbname[?param1=value1&...&paramN=valueN]
+	// A DSN in its fullest form:
+	// username:password@protocol(address)/dbname?param=value
+	// Except for the databasename, all values are optional. So the minimal DSN is: /dbname
+	//	db := Initproductsdb()
+
+	var querystring string = "SELECT id, name FROM products"
+	if wherestring != "" {
+		var sanitized_wherestring string = wherestring // TODO
+		querystring = querystring + " WHERE " + sanitized_wherestring
+	}
+	stmt, err := db.Prepare(querystring)
+	// stmt, err := db.Prepare("SELECT id, name FROM products")
+	if err != nil {
+		panic(err)
+	}
+
+	rows, err = stmt.Query()
+	// rows, err := stmt.Query()
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+
+	//	db.Close()
+	return rows, err
+
+}

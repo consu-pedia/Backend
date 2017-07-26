@@ -9,13 +9,13 @@ import (
 )
 
 var Allpathsregexp = regexp.MustCompile("^/api/v1/products")
-var productidregexp = regexp.MustCompile("^[0-9][0-9]+")
+var productidregexp = regexp.MustCompile("^[0-9]+")
 
 var Productsdb *sql.DB = nil
 
 var PRODUCTSAPI string = "/api/v1/products"
 
-var DEBUG bool = false
+var DEBUG bool = true
 
 // API "endpoint" /api/v1/products
 // provides the following x functions:
@@ -25,9 +25,81 @@ var DEBUG bool = false
 // TODO POST /products => create new product and return its id
 // TODO PUT /products/<p> => update product record
 
+func singleproductquery(w http.ResponseWriter, productid int) (err error) {
+	err = nil
+	if Productsdb == nil {
+		panic("Productsdb not initialized")
+	}
+
+	name, err := Getproductsrecord(Productsdb, productid)
+	if err != nil {
+		panic(err)
+	}
+	if DEBUG {
+		fmt.Fprintf(w, "<br/>DBG seems to have worked, name = &lt;%s&gt;\n", name)
+	}
+
+	// create JSON response
+
+	// ALTERNATIVE 1: just product
+	productrec := NewProductstruct(productid, name)
+	jsonbytes, err := Makejson(productrec)
+
+	// ALTERNATIVE 2: container
+	//		var responsecontainer *Container = nil
+	//		responsecontainer = NewJsonContainer().AddProductRecord(productid, name)
+	//		jsonbytes, err := Makejson(responsecontainer.Records)
+
+	if err != nil {
+		fmt.Fprintf(w, "<br/>something very wrong in json creation: %s\n", err)
+	} else {
+		jsonstring := string(jsonbytes)
+		if DEBUG {
+			fmt.Fprintf(w, "<br/>DBG JSON = \"%s\"\n", jsonstring)
+		}
+		fmt.Fprintf(w, "%s\n", jsonstring)
+		if DEBUG {
+			fmt.Fprintf(w, "\"\n")
+		}
+	}
+	return err
+}
+
+// implementation:
+// in principle dump the whole table, with a SQL search query limited by the ? attributes
+func multiproductquery(w http.ResponseWriter, reststring string) (err error) {
+	err = nil
+	var wherestring string = ""
+
+	fmt.Fprintf(w, "<br/>ERROR STUB API FUNCTION: method get + not productidprovided, reststring= \"%s\"\n", reststring)
+
+	var rows *sql.Rows = nil
+
+	rows, err = Getproductsquery(Productsdb, wherestring)
+
+	if err != nil {
+		fmt.Fprintf(w, "<br/>ERROR query with wherestring %s FAILED: %v\n", wherestring, err)
+	} else {
+		// grmbl grmbl why nothing faster
+		var rc int = 0
+		for rows.Next() {
+
+			var id int
+			var name string
+			err = rows.Scan(&id, &name)
+			fmt.Fprintf(w, "<br/># %d %d %s\n", rc, id, name)
+			rc++
+		}
+		fmt.Fprintf(w, "<br/>INFO query with wherestring %s success: %d recs\n", wherestring, rc)
+	}
+
+	return err
+}
+
 func webserverproductshandler(w http.ResponseWriter, r *http.Request) {
 	var productidprovided bool = false
 	var productid int
+	var reststring string = ""
 	if DEBUG {
 		fmt.Fprintf(w, "<html><body>\n")
 		fmt.Fprintf(w, "products dispatcher here see if works %s %s", r.URL, r.URL.Path[1:])
@@ -48,7 +120,7 @@ func webserverproductshandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "<br/>ERROR matchthis &lt;%s&gt; SHOULD NEVER GET HERE\n", matchthis)
 		return
 	} else {
-		reststring := matchthis[len(PRODUCTSAPI)+1:]
+		reststring = matchthis[len(PRODUCTSAPI)+1:]
 
 		productidstring := productidregexp.FindString(reststring)
 		productidprovided = (productidstring != "")
@@ -76,39 +148,22 @@ func webserverproductshandler(w http.ResponseWriter, r *http.Request) {
 	// r.Method and productidprovided
 
 	if (r.Method == "GET") && (productidprovided) { // single product query
-		name, err := Getproductsrecord(Productsdb, productid)
+		err := singleproductquery(w, productid)
 		if err != nil {
-			panic(err)
+			fmt.Fprintf(w, "<br/>TODO error from singleproductquery()\n")
 		}
-		if DEBUG {
-			fmt.Fprintf(w, "<br/>DBG seems to have worked, name = &lt;%s&gt;\n", name)
-		}
-
-		// create JSON response
-
-		// ALTERNATIVE 1: just product
-		productrec := NewProductstruct(productid, name)
-		jsonbytes, err := Makejson(productrec)
-
-		// ALTERNATIVE 2: container
-		//		var responsecontainer *Container = nil
-		//		responsecontainer = NewJsonContainer().AddProductRecord(productid, name)
-		//		jsonbytes, err := Makejson(responsecontainer.Records)
-
-		if err != nil {
-			fmt.Fprintf(w, "<br/>something very wrong in json creation: %s\n", err)
-		} else {
-			jsonstring := string(jsonbytes)
-			if DEBUG {
-				fmt.Fprintf(w, "<br/>DBG JSON = \"%s\"\n", jsonstring)
-			}
-			fmt.Fprintf(w, "%s\n", jsonstring)
-			if DEBUG {
-				fmt.Fprintf(w, "\"\n")
-			}
-		}
+		return
 
 	} // endif (GET and productidprovided)
+
+	if (r.Method == "GET") && (!productidprovided) { // multi product query
+		err := multiproductquery(w, reststring)
+		if err != nil {
+			fmt.Fprintf(w, "<br/>TODO error from multiproductquery()\n")
+		}
+		return
+
+	} // endif (GET and not productidprovided)
 
 	// obsolete for now
 	// 	q := r.URL.Query()
@@ -135,6 +190,8 @@ func webserverproductshandler(w http.ResponseWriter, r *http.Request) {
 	//          testslice := matchthis.URL[0:8]
 	//fmt.Printf("DBG testslice <%s> of <%s>\n", testslice, matchthis)
 	//        }
+
+	fmt.Fprintf(w, "<br/>ERROR UNIMPLEMENTED API FUNCTION: method %s + productidprovided? %v\n", r.Method, productidprovided)
 
 	if DEBUG {
 		fmt.Fprintf(w, "</body></html>\n")
