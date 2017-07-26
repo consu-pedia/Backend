@@ -13,14 +13,14 @@ var TYPE_PRODUCT string = "product"
 var TYPE_ERROR string = "error"
 
 type Errorstruct struct {
-	Type    string `json:type`
-	Message string `json:errormessage`
+	Type    string `json:"type"`
+	Message string `json:"errormessage"`
 }
 
 type Productstruct struct {
-	Type string `json:type`
-	Id   string `json:id`
-	Name string `json:name`
+	Type string `json:"type"`
+	Id   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type Productstructp *Productstruct
@@ -37,13 +37,14 @@ type Container struct {
 	Records []Containerstruct
 }
 
-func Makejson(c []Containerstruct) (jsonbytes []byte, err error) {
+// func Makejson(c []Containerstruct) (jsonbytes []byte, err error) { }
+func Makejson(c interface{}) (jsonbytes []byte, err error) {
 	bytes, err := json.MarshalIndent(c, "", "  ")
 	jsonbytes = bytes
 	return jsonbytes, err
 }
 
-func newProductstruct(id int, name string) (pp Productstructp) {
+func NewProductstruct(id int, name string) (pp Productstructp) {
 	p := Productstruct{Type: TYPE_PRODUCT, Id: fmt.Sprintf("%d", id), Name: name}
 	pp = &p
 	return pp
@@ -68,7 +69,7 @@ func NewJsonContainer() *Container {
 
 // N.B. I'm using method declaration here, see https://golang.org/ref/spec#Method_declarations
 func (c *Container) AddProductRecord(id int, name string) *Container {
-	var pp Productstructp = newProductstruct(id, name)
+	var pp Productstructp = NewProductstruct(id, name)
 
 	// see paragraph "Appending to and copying slices" in golang language ref doc
 	c.Records = append(c.Records, Containerstruct{Type: pp.Type, Productrec: pp})

@@ -85,10 +85,16 @@ func webserverproductshandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// create JSON response
-		var responsecontainer *Container = nil
-		responsecontainer = NewJsonContainer().AddProductRecord(productid, name)
 
-		jsonbytes, err := Makejson(responsecontainer.Records)
+		// ALTERNATIVE 1: just product
+		productrec := NewProductstruct(productid, name)
+		jsonbytes, err := Makejson(productrec)
+
+		// ALTERNATIVE 2: container
+		//		var responsecontainer *Container = nil
+		//		responsecontainer = NewJsonContainer().AddProductRecord(productid, name)
+		//		jsonbytes, err := Makejson(responsecontainer.Records)
+
 		if err != nil {
 			fmt.Fprintf(w, "<br/>something very wrong in json creation: %s\n", err)
 		} else {
