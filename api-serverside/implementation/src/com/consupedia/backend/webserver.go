@@ -176,14 +176,16 @@ func addgtinclause(wherestring string, v []string) (res string) {
 	if DEBUG {
 		fmt.Printf("\n\n\naddgtinclause(%s)\n\n\n", v[0])
 	}
-	gtin := v[0]
+	gtinWithAsterisks := v[0]
 	var squot int = 0x27 // single quote
 
 	if wherestring != "" {
 		wherestring += " AND "
 	}
 
-	var gtinclause string = fmt.Sprintf("gtin = %c%v%c", squot, gtin, squot)
+	// replace asterisks U+002A with % as wildcard
+	gtinWithPercent := strings.Replace(gtinWithAsterisks, "*", "%", -1)
+	var gtinclause string = fmt.Sprintf("gtin LIKE %c%v%c", squot, gtinWithPercent, squot)
 	wherestring += gtinclause
 	return wherestring
 }
