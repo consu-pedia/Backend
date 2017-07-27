@@ -116,6 +116,21 @@ func addnameclause(wherestring string, v []string) (res string) {
 	wherestring += nameclause
 	return wherestring
 }
+func addgtinclause(wherestring string, v []string) (res string) {
+	if DEBUG {
+		fmt.Printf("\n\n\naddgtinclause(%s)\n\n\n", v[0])
+	}
+	gtin := v[0]
+	var squot int = 0x27 // single quote
+
+	if wherestring != "" {
+		wherestring += " AND "
+	}
+
+	var gtinclause string = fmt.Sprintf("gtin LIKE %c%v%c", squot, gtin, squot)
+	wherestring += gtinclause
+	return wherestring
+}
 
 func addfullnameclause(wherestring string, v []string) (res string) {
 	if DEBUG {
@@ -151,6 +166,9 @@ func multiproductconstructwherestring(w http.ResponseWriter, q url.Values, pag *
 		}
 
 		switch k {
+		case "gtin":
+			wherestring = addgtinclause(wherestring, v)
+
 		case "name":
 			wherestring = addnameclause(wherestring, v)
 

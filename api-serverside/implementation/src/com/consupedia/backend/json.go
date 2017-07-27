@@ -20,21 +20,21 @@ type Errorstruct struct {
 
 // N.B. this must correspond with the values in db.go
 type Productstruct struct {
-	Type           string `json:"type"`
-	Id             int    `json:"id"`
-	Gtin           string `json:"gtin,omitempty"`
-	Name           string `json:"name"`
-	Fullname       string `json:"fullname,omitempty"`
-	Size           int
-	SizeunitId     int
-	Image          string
-	Bulk           int8   // tinyint(1)
-	Description    string `json:"description,omitempty"` // text
-	CategoryId     int
-	BrandId        int
-	ManufacturerId int
-	CreatedAt      *time.Time
-	UpdatedAt      *time.Time
+	Type           string     `json:"type"`
+	Id             int        `json:"id"`
+	Gtin           string     `json:"gtin,omitempty"`
+	Name           string     `json:"name"`
+	Fullname       string     `json:"fullname,omitempty"`
+	Size           int        `json:"size,omitempty"`
+	SizeunitId     int        `json:"sizeunit_id,omitempty"`
+	Image          string     `json:"image,omitempty"`
+	Bulk           int8       `json:"bulk"`                  // tinyint(1)
+	Description    string     `json:"description,omitempty"` // text
+	CategoryId     int        `json:"category_id"`
+	BrandId        int        `json:"brand_id,omitempty"`
+	ManufacturerId int        `json:"manufacturer_id,omitempty"`
+	CreatedAt      *time.Time `json:"created_at,omitempty"`
+	UpdatedAt      *time.Time `json:"updated_at,omitempty"`
 }
 
 type Productstructp *Productstruct
