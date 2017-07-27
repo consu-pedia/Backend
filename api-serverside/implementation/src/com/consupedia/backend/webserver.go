@@ -17,8 +17,39 @@ var productidregexp = regexp.MustCompile("^[0-9]+")
 var Productsdb *sql.DB = nil
 
 var PRODUCTSAPI string = "/api/v1/products"
+var DEFAULTPERPAGE int = 20
+var PRODUCTSDEFAULTPERPAGE int = DEFAULTPERPAGE
+
+type Pagination struct {
+	Pagenr  int
+	PerPage int // number of records per page, see also DEFAULTPERPAGE
+}
 
 var DEBUG bool = false
+
+// function to limit the data flow to the client
+// from a record set, only those records whose record nr is on a
+// "display page" gets selected.
+// special case: if pag.PerPage == 0 or -1 then return all records
+func paginationSelect(recnr int, pag *Pagination) bool {
+	var pnrm1 int = pag.Pagenr - 1
+	var pmpnr int = 0
+	if pag.PerPage <= 0 {
+		return true
+	}
+
+	// HACK: if pag.Pagenr == 0 (and therefore pnrm1 == -1) then it
+	// means that the display pagenr is not set and therefore Pagenr == 1
+	if pnrm1 == -1 {
+		pnrm1 = 0
+	}
+
+	pmpnr = int(recnr / pag.PerPage)
+	var res bool = (pmpnr == pnrm1)
+	//	fmt.Printf("pag DBG: Pagenr=%d PerPage=%d recnr=%d pnrm1=%d pmpnr=%d res=%v\n", pag.Pagenr, pag.PerPage, recnr, pnrm1, pmpnr, res)
+
+	return res
+}
 
 // API "endpoint" /api/v1/products
 // provides the following x functions:
@@ -86,7 +117,9 @@ func addnameclause(wherestring string, v []string) (res string) {
 	return wherestring
 }
 
-func multiproductconstructwherestring(w http.ResponseWriter, q url.Values) (wherestring string, err error) {
+// side-effect:
+// pagenr and per_page are k,v pairs that are not used to modify the WHERE string, but instead modify the Pagination settings
+func multiproductconstructwherestring(w http.ResponseWriter, q url.Values, pag *Pagination) (wherestring string, err error) {
 
 	wherestring = ""
 
@@ -102,6 +135,17 @@ func multiproductconstructwherestring(w http.ResponseWriter, q url.Values) (wher
 		switch k {
 		case "name":
 			wherestring = addnameclause(wherestring, v)
+
+		// N.B. pagenr doesn't show up in the WHERE string but in the pag struct
+		case "page":
+			pag.Pagenr, err = strconv.Atoi(v[0])
+			if err != nil { // ignore
+			}
+		// N.B. per_page doesn't show up in the WHERE string but in the pag struct
+		case "per_page":
+			pag.PerPage, err = strconv.Atoi(v[0])
+			if err != nil { // ignore
+			}
 
 		default:
 			fmt.Fprintf(w, "<br/>ERROR multiproductconstructwherestring(): UNIMPLEMENTED key %v\n", k)
@@ -142,6 +186,7 @@ func multiproductquery(w http.ResponseWriter, q url.Values, reststring string) (
 	var productslice []Productstruct = nil
 	var jsonbytes []byte = nil
 	var rc int = 0
+	var productspagination Pagination = Pagination{Pagenr: 1, PerPage: PRODUCTSDEFAULTPERPAGE}
 
 	if DEBUG {
 		fmt.Fprintf(w, "<br/>ERROR STUB UNFINISHED API FUNCTION: method get + not productidprovided, reststring= \"%s\"\n", reststring)
@@ -150,7 +195,7 @@ func multiproductquery(w http.ResponseWriter, q url.Values, reststring string) (
 
 	var rows *sql.Rows = nil
 
-	wherestring, err = multiproductconstructwherestring(w, q)
+	wherestring, err = multiproductconstructwherestring(w, q, &productspagination)
 
 	if err != nil {
 		panic(err)
@@ -165,10 +210,18 @@ func multiproductquery(w http.ResponseWriter, q url.Values, reststring string) (
 	}
 
 	// grmbl grmbl why nothing faster
+	rc = 0
 	for rows.Next() {
 
 		var productid int
 		var name string
+
+		// make returned rows depend on productspagination
+		if !paginationSelect(rc, &productspagination) {
+			rc++
+			continue
+		}
+
 		err = rows.Scan(&productid, &name)
 		if err != nil {
 			rc = -1
