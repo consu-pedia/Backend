@@ -234,27 +234,23 @@ func multiproductquery(w http.ResponseWriter, q url.Values, reststring string) (
 	rc = 0
 	for rows.Next() {
 
-		var productid int
-		var name string
-		var fullname string = ""
-
 		// make returned rows depend on productspagination
 		if !paginationSelect(rc, &productspagination) {
 			rc++
 			continue
 		}
 
-		err = rows.Scan(&productid, &name, &fullname)
+		productrec, err := ScanProduct(rows)
+
 		if err != nil {
 			rc = -1
 			break
 		}
 		if DEBUG {
-			fmt.Fprintf(w, "<br/># %d %d %s %s\n", rc, productid, name, fullname)
+			fmt.Fprintf(w, "<br/># %d %d %s %s\n", rc, productrec.Id, productrec.Name, productrec.Fullname)
 		}
-		productrec := NewProductstruct(productid, name, fullname)
 
-		productslice = append(productslice, *productrec)
+		productslice = append(productslice, productrec)
 
 		// add to array of Product
 
