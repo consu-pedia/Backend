@@ -27,6 +27,108 @@ func Initproductsdb() *sql.DB {
 	return (db)
 }
 
+func ScanProduct(rows *sql.Rows) (prod Productstruct, err error) {
+	var colid int
+	var gtin string = ""
+	var name string
+	var fullname string = ""
+	var size int
+	var sizeHolder interface{} = nil
+	var sizeunitId int
+	var sizeunitIdHolder interface{} = nil
+	var image string
+	var imageHolder interface{} = nil
+	var bulk int8          // tinyint(1)
+	var description string // text
+	var descriptionHolder interface{} = nil
+	var category_id int
+	var brand_id int
+	var brandIdHolder interface{} = nil
+	var manufacturer_id int
+	var manufacturerIdHolder interface{} = nil
+
+	// sql: Scan error on column index 12: unsupported Scan, storing driver.Value type []uint8 into type *time.Time
+	var created_at time.Time
+	var createdAtHolder interface{} = nil
+	var updated_at time.Time
+	var updatedAtHolder interface{} = nil
+	err = rows.Scan(&colid, &gtin, &name, &fullname, &sizeHolder, &sizeunitIdHolder, &imageHolder, &bulk, &descriptionHolder, &category_id, &brandIdHolder, &manufacturerIdHolder, &createdAtHolder, &updatedAtHolder)
+	if err != nil {
+		panic(err)
+	}
+	if sizeHolder != nil {
+		size, err = strconv.Atoi(sizeHolder.(string))
+	} else {
+		size = 0
+	}
+
+	if sizeunitIdHolder != nil {
+		sizeunitId, err = strconv.Atoi(sizeunitIdHolder.(string))
+	} else {
+		sizeunitId = 0
+	}
+
+	if imageHolder != nil {
+		image = imageHolder.(string)
+	} else {
+		image = ""
+	}
+
+	if descriptionHolder != nil {
+		description = descriptionHolder.(string)
+	} else {
+		description = ""
+	}
+
+	if brandIdHolder != nil {
+		brand_id, err = strconv.Atoi(brandIdHolder.(string))
+	} else {
+		brand_id = 0
+	}
+
+	if manufacturerIdHolder != nil {
+		manufacturer_id, err = strconv.Atoi(manufacturerIdHolder.(string))
+	} else {
+		manufacturer_id = 0
+	}
+
+	var tmptimebytes []byte
+	var ttime string
+	// haven't the foggiest idea how to convert raw []int8 to time_t
+	// 19 bytes (too long for all time_t like formats), it's just a bloody string!
+	if createdAtHolder != nil {
+		tmptimebytes = createdAtHolder.([]byte)
+		fmt.Printf("DBG created_at parsing: %d %02x %02x \"%s\"\n", len(tmptimebytes), tmptimebytes[0], tmptimebytes[1], string(tmptimebytes))
+		// it's like ISO 8601 except the letter T is missing
+		ttime = strings.Replace(string(tmptimebytes), " ", "T", 1) + "Z"
+		created_at = time.Unix(0, 0)
+		err = created_at.UnmarshalText([]byte(ttime))
+		if err != nil {
+			fmt.Printf("DBG aww time conversion FAILED: %v\n", err)
+		}
+	} else {
+		created_at = time.Unix(0, 0)
+	}
+
+	if updatedAtHolder != nil {
+		tmptimebytes = updatedAtHolder.([]byte)
+		fmt.Printf("DBG updated_at parsing: %d %02x %02x \"%s\"\n", len(tmptimebytes), tmptimebytes[0], tmptimebytes[1], string(tmptimebytes))
+		// it's like ISO 8601 except the letter T is missing
+		ttime = strings.Replace(string(tmptimebytes), " ", "T", 1) + "Z"
+		updated_at = time.Unix(0, 0)
+		err = updated_at.UnmarshalText([]byte(ttime))
+		if err != nil {
+			fmt.Printf("DBG aww time conversion FAILED: %v\n", err)
+		}
+	} else {
+		updated_at = time.Unix(0, 0)
+	}
+
+	fmt.Printf("ScanProduct(): just read record %v name %v\n", colid, name)
+	prod = Productstruct{Type: TYPE_PRODUCT, Id: colid, Gtin: gtin, Name: name, Fullname: fullname, Size: size, SizeunitId: sizeunitId, Image: image, Bulk: bulk, Description: description, CategoryId: category_id, BrandId: brand_id, ManufacturerId: manufacturer_id, CreatedAt: &created_at, UpdatedAt: &updated_at}
+	return prod, nil
+}
+
 func Getproductsrecord(db *sql.DB, id int) (prod Productstruct, err error) {
 	// from documentation https://github.com/go-sql-driver/mysql/blob/master/README.md#dsn-data-source-name:
 	// DSN (Data Source Name)
@@ -55,105 +157,9 @@ func Getproductsrecord(db *sql.DB, id int) (prod Productstruct, err error) {
 
 	// N.B. this must correspond with the values in json.go
 	for rows.Next() {
-		var colid int
-		var gtin string = ""
-		var name string
-		var fullname string = ""
-		var size int
-		var sizeHolder interface{} = nil
-		var sizeunitId int
-		var sizeunitIdHolder interface{} = nil
-		var image string
-		var imageHolder interface{} = nil
-		var bulk int8          // tinyint(1)
-		var description string // text
-		var descriptionHolder interface{} = nil
-		var category_id int
-		var brand_id int
-		var brandIdHolder interface{} = nil
-		var manufacturer_id int
-		var manufacturerIdHolder interface{} = nil
 
-		// sql: Scan error on column index 12: unsupported Scan, storing driver.Value type []uint8 into type *time.Time
-		var created_at time.Time
-		var createdAtHolder interface{} = nil
-		var updated_at time.Time
-		var updatedAtHolder interface{} = nil
-		err = rows.Scan(&colid, &gtin, &name, &fullname, &sizeHolder, &sizeunitIdHolder, &imageHolder, &bulk, &descriptionHolder, &category_id, &brandIdHolder, &manufacturerIdHolder, &createdAtHolder, &updatedAtHolder)
-		if err != nil {
-			panic(err)
-		}
-		if sizeHolder != nil {
-			size, err = strconv.Atoi(sizeHolder.(string))
-		} else {
-			size = 0
-		}
-
-		if sizeunitIdHolder != nil {
-			sizeunitId, err = strconv.Atoi(sizeunitIdHolder.(string))
-		} else {
-			sizeunitId = 0
-		}
-
-		if imageHolder != nil {
-			image = imageHolder.(string)
-		} else {
-			image = ""
-		}
-
-		if descriptionHolder != nil {
-			description = descriptionHolder.(string)
-		} else {
-			description = ""
-		}
-
-		if brandIdHolder != nil {
-			brand_id, err = strconv.Atoi(brandIdHolder.(string))
-		} else {
-			brand_id = 0
-		}
-
-		if manufacturerIdHolder != nil {
-			manufacturer_id, err = strconv.Atoi(manufacturerIdHolder.(string))
-		} else {
-			manufacturer_id = 0
-		}
-
-		var tmptimebytes []byte
-		var ttime string
-		// haven't the foggiest idea how to convert raw []int8 to time_t
-		// 19 bytes (too long for all time_t like formats), it's just a bloody string!
-		if createdAtHolder != nil {
-			tmptimebytes = createdAtHolder.([]byte)
-			fmt.Printf("DBG created_at parsing: %d %02x %02x \"%s\"\n", len(tmptimebytes), tmptimebytes[0], tmptimebytes[1], string(tmptimebytes))
-			// it's like ISO 8601 except the letter T is missing
-			ttime = strings.Replace(string(tmptimebytes), " ", "T", 1) + "Z"
-			created_at = time.Unix(0, 0)
-			err = created_at.UnmarshalText([]byte(ttime))
-			if err != nil {
-				fmt.Printf("DBG aww time conversion FAILED: %v\n", err)
-			}
-		} else {
-			created_at = time.Unix(0, 0)
-		}
-
-		if updatedAtHolder != nil {
-			tmptimebytes = updatedAtHolder.([]byte)
-			fmt.Printf("DBG updated_at parsing: %d %02x %02x \"%s\"\n", len(tmptimebytes), tmptimebytes[0], tmptimebytes[1], string(tmptimebytes))
-			// it's like ISO 8601 except the letter T is missing
-			ttime = strings.Replace(string(tmptimebytes), " ", "T", 1) + "Z"
-			updated_at = time.Unix(0, 0)
-			err = updated_at.UnmarshalText([]byte(ttime))
-			if err != nil {
-				fmt.Printf("DBG aww time conversion FAILED: %v\n", err)
-			}
-		} else {
-			updated_at = time.Unix(0, 0)
-		}
-
-		fmt.Printf("just read record %v name %v\n", colid, name)
-		prod = Productstruct{Type: TYPE_PRODUCT, Id: colid, Gtin: gtin, Name: name, Fullname: fullname, Size: size, SizeunitId: sizeunitId, Image: image, Bulk: bulk, Description: description, CategoryId: category_id, BrandId: brand_id, ManufacturerId: manufacturer_id, CreatedAt: &created_at, UpdatedAt: &updated_at}
-		return prod, nil
+		prod, err = ScanProduct(rows)
+		return prod, err
 	}
 	err = rows.Err()
 	if err != nil {
