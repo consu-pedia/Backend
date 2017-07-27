@@ -6,6 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -74,9 +75,9 @@ func Getproductsrecord(db *sql.DB, id int) (prod Productstruct, err error) {
 		var manufacturerIdHolder interface{} = nil
 
 		// sql: Scan error on column index 12: unsupported Scan, storing driver.Value type []uint8 into type *time.Time
-		var created_at *time.Time
+		var created_at time.Time
 		var createdAtHolder interface{} = nil
-		var updated_at *time.Time
+		var updated_at time.Time
 		var updatedAtHolder interface{} = nil
 		err = rows.Scan(&colid, &gtin, &name, &fullname, &sizeHolder, &sizeunitIdHolder, &imageHolder, &bulk, &descriptionHolder, &category_id, &brandIdHolder, &manufacturerIdHolder, &createdAtHolder, &updatedAtHolder)
 		if err != nil {
@@ -118,17 +119,40 @@ func Getproductsrecord(db *sql.DB, id int) (prod Productstruct, err error) {
 			manufacturer_id = 0
 		}
 
+		var tmptimebytes []byte
+		var ttime string
 		// haven't the foggiest idea how to convert raw []int8 to time_t
+		// 19 bytes (too long for all time_t like formats), it's just a bloody string!
 		if createdAtHolder != nil {
+			tmptimebytes = createdAtHolder.([]byte)
+			fmt.Printf("DBG created_at parsing: %d %02x %02x \"%s\"\n", len(tmptimebytes), tmptimebytes[0], tmptimebytes[1], string(tmptimebytes))
+			// it's like ISO 8601 except the letter T is missing
+			ttime = strings.Replace(string(tmptimebytes), " ", "T", 1) + "Z"
+			created_at = time.Unix(0, 0)
+			err = created_at.UnmarshalText([]byte(ttime))
+			if err != nil {
+				fmt.Printf("DBG aww time conversion FAILED: %v\n", err)
+			}
 		} else {
+			created_at = time.Unix(0, 0)
 		}
 
 		if updatedAtHolder != nil {
+			tmptimebytes = updatedAtHolder.([]byte)
+			fmt.Printf("DBG updated_at parsing: %d %02x %02x \"%s\"\n", len(tmptimebytes), tmptimebytes[0], tmptimebytes[1], string(tmptimebytes))
+			// it's like ISO 8601 except the letter T is missing
+			ttime = strings.Replace(string(tmptimebytes), " ", "T", 1) + "Z"
+			updated_at = time.Unix(0, 0)
+			err = updated_at.UnmarshalText([]byte(ttime))
+			if err != nil {
+				fmt.Printf("DBG aww time conversion FAILED: %v\n", err)
+			}
 		} else {
+			updated_at = time.Unix(0, 0)
 		}
 
 		fmt.Printf("just read record %v name %v\n", colid, name)
-		prod = Productstruct{Type: TYPE_PRODUCT, Id: colid, Gtin: gtin, Name: name, Fullname: fullname, Size: size, SizeunitId: sizeunitId, Image: image, Bulk: bulk, Description: description, CategoryId: category_id, BrandId: brand_id, ManufacturerId: manufacturer_id, CreatedAt: created_at, UpdatedAt: updated_at}
+		prod = Productstruct{Type: TYPE_PRODUCT, Id: colid, Gtin: gtin, Name: name, Fullname: fullname, Size: size, SizeunitId: sizeunitId, Image: image, Bulk: bulk, Description: description, CategoryId: category_id, BrandId: brand_id, ManufacturerId: manufacturer_id, CreatedAt: &created_at, UpdatedAt: &updated_at}
 		return prod, nil
 	}
 	err = rows.Err()
