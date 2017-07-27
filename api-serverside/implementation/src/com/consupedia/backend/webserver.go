@@ -12,8 +12,12 @@ import (
 )
 
 var PRODUCTSAPI string = "/api/v1/products"
-var Allpathsregexp = regexp.MustCompile("^" + PRODUCTSAPI)
+var PRODUCTBYGTINAPI string = "/api/v1/products/gtin"
+var Allpathsregexp = regexp.MustCompile("^(" + PRODUCTSAPI + "|" + PRODUCTBYGTINAPI + ")")
 var productidregexp = regexp.MustCompile("^[0-9]+")
+
+// basically a number with too many zeroes at the beginning
+var gtinregexp = regexp.MustCompile("^[0-9]+")
 
 var Productsdb *sql.DB = nil
 
@@ -99,6 +103,57 @@ func singleproductquery(w http.ResponseWriter, productid int) (err error) {
 	return err
 }
 
+func singleproductgtinquery(w http.ResponseWriter, gtin string) (err error) {
+	var productrec Productstruct
+	err = nil
+	if Productsdb == nil {
+		panic("Productsdb not initialized")
+	}
+
+	var squot int = 0x27 // single quote
+	var wherestring string = fmt.Sprintf("gtin = %c%v%c", squot, gtin, squot)
+
+	rows, err := Getproductsquery(Productsdb, wherestring)
+	if err != nil {
+		panic(err)
+	}
+	if DEBUG {
+		fmt.Fprintf(w, "<br/>DBG singleproductgtinquery seems to have worked, name = &lt;%s&gt;\n", productrec.Name)
+	}
+
+	// set cursor to first hit (there's only 1)
+	rows.Next()
+
+	productrec, err = ScanProduct(rows)
+
+	if err != nil {
+		fmt.Fprintf(w, "<br/>something went wrong in ScanProduct of the 1 GTIN query\n")
+		return err
+	}
+	if DEBUG {
+		fmt.Fprintf(w, "<br/>%d %s %s\n", productrec.Id, productrec.Name, productrec.Fullname)
+	}
+	// create JSON response
+
+	// ALTERNATIVE 1: just product
+	jsonbytes, err := Makejson(productrec)
+
+	if err != nil {
+		fmt.Fprintf(w, "<br/>something very wrong in json creation: %s\n", err)
+		return err
+	}
+
+	jsonstring := string(jsonbytes)
+	if DEBUG {
+		fmt.Fprintf(w, "<br/>DBG JSON = \"%s\"\n", jsonstring)
+	}
+	fmt.Fprintf(w, "%s\n", jsonstring)
+	if DEBUG {
+		fmt.Fprintf(w, "\"\n")
+	}
+	return err
+}
+
 func addnameclause(wherestring string, v []string) (res string) {
 	if DEBUG {
 		fmt.Printf("\n\n\naddnameclause(%s)\n\n\n", v[0])
@@ -116,6 +171,7 @@ func addnameclause(wherestring string, v []string) (res string) {
 	wherestring += nameclause
 	return wherestring
 }
+
 func addgtinclause(wherestring string, v []string) (res string) {
 	if DEBUG {
 		fmt.Printf("\n\n\naddgtinclause(%s)\n\n\n", v[0])
@@ -127,7 +183,7 @@ func addgtinclause(wherestring string, v []string) (res string) {
 		wherestring += " AND "
 	}
 
-	var gtinclause string = fmt.Sprintf("gtin LIKE %c%v%c", squot, gtin, squot)
+	var gtinclause string = fmt.Sprintf("gtin = %c%v%c", squot, gtin, squot)
 	wherestring += gtinclause
 	return wherestring
 }
@@ -294,11 +350,89 @@ func multiproductquery(w http.ResponseWriter, q url.Values, reststring string) (
 	return err
 }
 
+func webserverproductbygtinhandler(w http.ResponseWriter, r *http.Request) {
+	var gtinprovided bool = false
+	var gtin string
+	var reststring string = ""
+	if DEBUG {
+		fmt.Fprintf(w, "<html><body>\n")
+		fmt.Fprintf(w, "productbygtin dispatcher here see if works %s %s", r.URL, r.URL.Path[1:])
+	}
+
+	if DEBUG {
+		fmt.Fprintf(w, "<html><body><br/>This was a %s request, </body></html>\n", r.Method)
+	}
+
+	matchthis := r.URL.String()
+	if DEBUG {
+		fmt.Fprintf(w, "<br/>DBG matchthis &lt;%s&gt;\n", matchthis)
+	}
+
+	// first parse if gtin is provided
+	// TODO
+	if matchthis[0:len(PRODUCTBYGTINAPI)] != PRODUCTBYGTINAPI {
+		fmt.Fprintf(w, "<br/>ERROR matchthis &lt;%s&gt; SHOULD NEVER GET HERE\n", matchthis)
+		return
+	}
+
+	// special case no reststring
+	if (len(matchthis) == len(PRODUCTBYGTINAPI)) ||
+		((len(matchthis) == len(PRODUCTBYGTINAPI)+1) && (matchthis[len(PRODUCTBYGTINAPI)] == '/')) {
+		// only all products
+		gtinprovided = false
+		reststring = ""
+		if DEBUG {
+			fmt.Fprintf(w, "<br/>DBG productbygtin URL without anything else (thats a wrong usage)\n")
+			fmt.Printf("<br/>DBG productbygtin URL without anything else (thats a wrong usage)\n")
+		}
+	} else {
+
+		reststring = matchthis[len(PRODUCTBYGTINAPI)+1:]
+
+		gtinstring := gtinregexp.FindString(reststring)
+		gtinprovided = (gtinstring != "")
+
+		if gtinprovided {
+			if DEBUG {
+				fmt.Fprintf(w, "<br/>OK matchthis &lt;%s&gt;<br/>rest &lt;%s&gt;, gtinProvided = %v\n", matchthis, reststring, gtinprovided)
+				fmt.Fprintf(w, "<br/>gtin to parse from &lt;%v&gt;\n", gtinstring)
+			}
+			gtin = gtinstring
+
+			if DEBUG {
+				fmt.Fprintf(w, "<br/>success, gtin = %s\n", gtin)
+			}
+
+		}
+	}
+
+	// we now have all the info to parse:
+	// r.Method and gtinprovided
+
+	if (r.Method == "GET") && (gtinprovided) { // single product query
+		err := singleproductgtinquery(w, gtin)
+		if err != nil {
+			fmt.Fprintf(w, "<br/>TODO error from singleproductgtinquery()\n")
+		}
+		return
+
+	} // endif (GET and gtinprovided)
+
+	// all other uses are errors
+
+	fmt.Fprintf(w, "<br/>ERROR UNIMPLEMENTED GTIN API FUNCTION: method %s + gtinprovided? %v\n", r.Method, gtinprovided)
+
+	if DEBUG {
+		fmt.Fprintf(w, "</body></html>\n")
+	}
+
+	return
+}
+
 func webserverproductshandler(w http.ResponseWriter, r *http.Request) {
 	var productidprovided bool = false
 	var productid int
 	var reststring string = ""
-	fmt.Fprintf(os.Stderr, "starting webserver\n")
 	if DEBUG {
 		fmt.Fprintf(w, "<html><body>\n")
 		fmt.Fprintf(w, "products dispatcher here see if works %s %s", r.URL, r.URL.Path[1:])
@@ -403,6 +537,8 @@ func webserverresthandler(w http.ResponseWriter, r *http.Request) {
 
 func Webserver(proddb *sql.DB) {
 	Productsdb = proddb
+	fmt.Fprintf(os.Stderr, "starting webserver\n")
+	http.HandleFunc(PRODUCTBYGTINAPI+"/", webserverproductbygtinhandler)
 	http.HandleFunc(PRODUCTSAPI, webserverproductshandler)
 	// srsly WTF??
 	http.HandleFunc(PRODUCTSAPI+"/", webserverproductshandler)
