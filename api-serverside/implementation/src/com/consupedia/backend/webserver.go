@@ -11,12 +11,12 @@ import (
 	"strings"
 )
 
-var Allpathsregexp = regexp.MustCompile("^/api/v1/products")
+var PRODUCTSAPI string = "/api/v1/products"
+var Allpathsregexp = regexp.MustCompile("^" + PRODUCTSAPI)
 var productidregexp = regexp.MustCompile("^[0-9]+")
 
 var Productsdb *sql.DB = nil
 
-var PRODUCTSAPI string = "/api/v1/products"
 var DEFAULTPERPAGE int = 20
 var PRODUCTSDEFAULTPERPAGE int = DEFAULTPERPAGE
 
@@ -51,7 +51,7 @@ func paginationSelect(recnr int, pag *Pagination) bool {
 	return res
 }
 
-// API "endpoint" /api/v1/products
+// API "endpoint" PRODUCTSAPI = /api/v1/products
 // provides the following x functions:
 // TODO GET /products => get list of all products with pagination and Link headers; takes additional parameters with the ? mechanism
 // GET /products/<p> => get details of 1 product
@@ -318,7 +318,20 @@ func webserverproductshandler(w http.ResponseWriter, r *http.Request) {
 	if matchthis[0:len(PRODUCTSAPI)] != PRODUCTSAPI {
 		fmt.Fprintf(w, "<br/>ERROR matchthis &lt;%s&gt; SHOULD NEVER GET HERE\n", matchthis)
 		return
+	}
+
+	// special case no reststring
+	if (len(matchthis) == len(PRODUCTSAPI)) ||
+		((len(matchthis) == len(PRODUCTSAPI)+1) && (matchthis[len(PRODUCTSAPI)] == '/')) {
+		// only all products
+		productidprovided = false
+		reststring = ""
+		if DEBUG {
+			fmt.Fprintf(w, "<br/>DBG products URL without anything else\n")
+			fmt.Printf("<br/>DBG products URL without anything else\n")
+		}
 	} else {
+
 		reststring = matchthis[len(PRODUCTSAPI)+1:]
 
 		productidstring := productidregexp.FindString(reststring)
@@ -390,7 +403,9 @@ func webserverresthandler(w http.ResponseWriter, r *http.Request) {
 
 func Webserver(proddb *sql.DB) {
 	Productsdb = proddb
-	http.HandleFunc("/api/v1/products/", webserverproductshandler)
+	http.HandleFunc(PRODUCTSAPI, webserverproductshandler)
+	// srsly WTF??
+	http.HandleFunc(PRODUCTSAPI+"/", webserverproductshandler)
 	http.HandleFunc("/", webserverresthandler)
 	http.ListenAndServe(":1752", nil)
 }
