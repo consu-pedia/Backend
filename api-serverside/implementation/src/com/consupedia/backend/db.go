@@ -5,6 +5,8 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"os"
+	"strconv"
+	"time"
 )
 
 // N.B. variable DEBUG is declared in webserver.go
@@ -24,7 +26,7 @@ func Initproductsdb() *sql.DB {
 	return (db)
 }
 
-func Getproductsrecord(db *sql.DB, id int) (name string, err error) {
+func Getproductsrecord(db *sql.DB, id int) (prod Productstruct, err error) {
 	// from documentation https://github.com/go-sql-driver/mysql/blob/master/README.md#dsn-data-source-name:
 	// DSN (Data Source Name)
 	// The Data Source Name has a common format, like e.g. PEAR DB uses it, but without type-prefix (optional parts marked by squared brackets):
@@ -34,7 +36,7 @@ func Getproductsrecord(db *sql.DB, id int) (name string, err error) {
 	// Except for the databasename, all values are optional. So the minimal DSN is: /dbname
 	//	db := Initproductsdb()
 
-	stmt, err := db.Prepare("SELECT id, name FROM products WHERE id = ?")
+	stmt, err := db.Prepare("SELECT * FROM products WHERE id = ?")
 	// stmt, err := db.Prepare("SELECT id, name FROM products")
 	if err != nil {
 		panic(err)
@@ -43,7 +45,6 @@ func Getproductsrecord(db *sql.DB, id int) (name string, err error) {
 	// id_in := 1
 	id_in := id
 
-	name = "FUBAR"
 	rows, err := stmt.Query(id_in)
 	// rows, err := stmt.Query()
 	if err != nil {
@@ -51,15 +52,84 @@ func Getproductsrecord(db *sql.DB, id int) (name string, err error) {
 	}
 	defer rows.Close()
 
+	// N.B. this must correspond with the values in json.go
 	for rows.Next() {
 		var colid int
-		err = rows.Scan(&colid, &name)
+		var gtin string = ""
+		var name string
+		var fullname string = ""
+		var size int
+		var sizeHolder interface{} = nil
+		var sizeunitId int
+		var sizeunitIdHolder interface{} = nil
+		var image string
+		var imageHolder interface{} = nil
+		var bulk int8          // tinyint(1)
+		var description string // text
+		var descriptionHolder interface{} = nil
+		var category_id int
+		var brand_id int
+		var brandIdHolder interface{} = nil
+		var manufacturer_id int
+		var manufacturerIdHolder interface{} = nil
+
+		// sql: Scan error on column index 12: unsupported Scan, storing driver.Value type []uint8 into type *time.Time
+		var created_at *time.Time
+		var createdAtHolder interface{} = nil
+		var updated_at *time.Time
+		var updatedAtHolder interface{} = nil
+		err = rows.Scan(&colid, &gtin, &name, &fullname, &sizeHolder, &sizeunitIdHolder, &imageHolder, &bulk, &descriptionHolder, &category_id, &brandIdHolder, &manufacturerIdHolder, &createdAtHolder, &updatedAtHolder)
 		if err != nil {
 			panic(err)
 		}
+		if sizeHolder != nil {
+			size, err = strconv.Atoi(sizeHolder.(string))
+		} else {
+			size = 0
+		}
+
+		if sizeunitIdHolder != nil {
+			sizeunitId, err = strconv.Atoi(sizeunitIdHolder.(string))
+		} else {
+			sizeunitId = 0
+		}
+
+		if imageHolder != nil {
+			image = imageHolder.(string)
+		} else {
+			image = ""
+		}
+
+		if descriptionHolder != nil {
+			description = descriptionHolder.(string)
+		} else {
+			description = ""
+		}
+
+		if brandIdHolder != nil {
+			brand_id, err = strconv.Atoi(brandIdHolder.(string))
+		} else {
+			brand_id = 0
+		}
+
+		if manufacturerIdHolder != nil {
+			manufacturer_id, err = strconv.Atoi(manufacturerIdHolder.(string))
+		} else {
+			manufacturer_id = 0
+		}
+
+		// haven't the foggiest idea how to convert raw []int8 to time_t
+		if createdAtHolder != nil {
+		} else {
+		}
+
+		if updatedAtHolder != nil {
+		} else {
+		}
 
 		fmt.Printf("just read record %v name %v\n", colid, name)
-		return name, nil
+		prod = Productstruct{Type: TYPE_PRODUCT, Id: colid, Gtin: gtin, Name: name, Fullname: fullname, Size: size, SizeunitId: sizeunitId, Image: image, Bulk: bulk, Description: description, CategoryId: category_id, BrandId: brand_id, ManufacturerId: manufacturer_id, CreatedAt: created_at, UpdatedAt: updated_at}
+		return prod, nil
 	}
 	err = rows.Err()
 	if err != nil {
@@ -68,7 +138,7 @@ func Getproductsrecord(db *sql.DB, id int) (name string, err error) {
 
 	db.Close()
 
-	return "some error", err
+	return Productstruct{Name: "some error"}, err
 
 }
 
@@ -82,7 +152,7 @@ func Getproductsquery(db *sql.DB, wherestring string) (rows *sql.Rows, err error
 	// Except for the databasename, all values are optional. So the minimal DSN is: /dbname
 	//	db := Initproductsdb()
 
-	var querystring string = "SELECT id, name FROM products"
+	var querystring string = "SELECT * FROM products"
 	if wherestring != "" {
 		var sanitized_wherestring string = wherestring // TODO
 		querystring = querystring + " WHERE " + sanitized_wherestring

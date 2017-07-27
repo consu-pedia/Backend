@@ -65,18 +65,18 @@ func singleproductquery(w http.ResponseWriter, productid int) (err error) {
 		panic("Productsdb not initialized")
 	}
 
-	name, err := Getproductsrecord(Productsdb, productid)
+	productrec, err := Getproductsrecord(Productsdb, productid)
 	if err != nil {
 		panic(err)
 	}
 	if DEBUG {
-		fmt.Fprintf(w, "<br/>DBG seems to have worked, name = &lt;%s&gt;\n", name)
+		fmt.Fprintf(w, "<br/>DBG seems to have worked, name = &lt;%s&gt;\n", productrec.Name)
 	}
 
 	// create JSON response
 
 	// ALTERNATIVE 1: just product
-	productrec := NewProductstruct(productid, name)
+	// productrec := NewProductstruct(productid, name)
 	jsonbytes, err := Makejson(productrec)
 
 	// ALTERNATIVE 2: container
@@ -117,6 +117,24 @@ func addnameclause(wherestring string, v []string) (res string) {
 	return wherestring
 }
 
+func addfullnameclause(wherestring string, v []string) (res string) {
+	if DEBUG {
+		fmt.Printf("\n\n\naddfullnameclause(%s)\n\n\n", v[0])
+	}
+	fullnameWithAsterisks := v[0]
+	var squot int = 0x27 // single quote
+
+	if wherestring != "" {
+		wherestring += " AND "
+	}
+
+	// replace asterisks U+002A with % as wildcard
+	fullnameWithPercent := strings.Replace(fullnameWithAsterisks, "*", "%", -1)
+	var fullnameclause string = fmt.Sprintf("fullname LIKE %c%v%c", squot, fullnameWithPercent, squot)
+	wherestring += fullnameclause
+	return wherestring
+}
+
 // side-effect:
 // pagenr and per_page are k,v pairs that are not used to modify the WHERE string, but instead modify the Pagination settings
 func multiproductconstructwherestring(w http.ResponseWriter, q url.Values, pag *Pagination) (wherestring string, err error) {
@@ -135,6 +153,9 @@ func multiproductconstructwherestring(w http.ResponseWriter, q url.Values, pag *
 		switch k {
 		case "name":
 			wherestring = addnameclause(wherestring, v)
+
+		case "fullname":
+			wherestring = addfullnameclause(wherestring, v)
 
 		// N.B. pagenr doesn't show up in the WHERE string but in the pag struct
 		case "page":
@@ -215,6 +236,7 @@ func multiproductquery(w http.ResponseWriter, q url.Values, reststring string) (
 
 		var productid int
 		var name string
+		var fullname string = ""
 
 		// make returned rows depend on productspagination
 		if !paginationSelect(rc, &productspagination) {
@@ -222,15 +244,15 @@ func multiproductquery(w http.ResponseWriter, q url.Values, reststring string) (
 			continue
 		}
 
-		err = rows.Scan(&productid, &name)
+		err = rows.Scan(&productid, &name, &fullname)
 		if err != nil {
 			rc = -1
 			break
 		}
 		if DEBUG {
-			fmt.Fprintf(w, "<br/># %d %d %s\n", rc, productid, name)
+			fmt.Fprintf(w, "<br/># %d %d %s %s\n", rc, productid, name, fullname)
 		}
-		productrec := NewProductstruct(productid, name)
+		productrec := NewProductstruct(productid, name, fullname)
 
 		productslice = append(productslice, *productrec)
 

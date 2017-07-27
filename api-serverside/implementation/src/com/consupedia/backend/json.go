@@ -7,6 +7,7 @@ package backend
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 )
 
 var TYPE_PRODUCT string = "product"
@@ -17,10 +18,23 @@ type Errorstruct struct {
 	Message string `json:"errormessage"`
 }
 
+// N.B. this must correspond with the values in db.go
 type Productstruct struct {
-	Type string `json:"type"`
-	Id   string `json:"id"`
-	Name string `json:"name"`
+	Type           string `json:"type"`
+	Id             int    `json:"id"`
+	Gtin           string `json:"gtin,omitempty"`
+	Name           string `json:"name"`
+	Fullname       string `json:"fullname,omitempty"`
+	Size           int
+	SizeunitId     int
+	Image          string
+	Bulk           int8   // tinyint(1)
+	Description    string `json:"description,omitempty"` // text
+	CategoryId     int
+	BrandId        int
+	ManufacturerId int
+	CreatedAt      *time.Time
+	UpdatedAt      *time.Time
 }
 
 type Productstructp *Productstruct
@@ -44,8 +58,8 @@ func Makejson(c interface{}) (jsonbytes []byte, err error) {
 	return jsonbytes, err
 }
 
-func NewProductstruct(id int, name string) (pp Productstructp) {
-	p := Productstruct{Type: TYPE_PRODUCT, Id: fmt.Sprintf("%d", id), Name: name}
+func NewProductstruct(id int, name string, fullname string) (pp Productstructp) {
+	p := Productstruct{Type: TYPE_PRODUCT, Id: id, Name: name, Fullname: fullname}
 	pp = &p
 	return pp
 }
@@ -68,8 +82,8 @@ func NewJsonContainer() *Container {
 }
 
 // N.B. I'm using method declaration here, see https://golang.org/ref/spec#Method_declarations
-func (c *Container) AddProductRecord(id int, name string) *Container {
-	var pp Productstructp = NewProductstruct(id, name)
+func (c *Container) AddProductRecord(id int, name string, fullname string) *Container {
+	var pp Productstructp = NewProductstruct(id, name, fullname)
 
 	// see paragraph "Appending to and copying slices" in golang language ref doc
 	c.Records = append(c.Records, Containerstruct{Type: pp.Type, Productrec: pp})
