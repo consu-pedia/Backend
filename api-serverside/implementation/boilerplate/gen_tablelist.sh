@@ -44,14 +44,14 @@ cat << TMPL00 > $jsonexportfile1
 package $dbname
 
 import (
-"encoding/json"
+// "encoding/json"
 TMPL00
 
 cat << TMPL01 > $jsondbfile1
 package $dbname
 
 import (
-"encoding/json"
+// "encoding/json"
 "database/sql"
 _ "github.com/go-sql-driver/mysql"
 TMPL01
@@ -60,6 +60,7 @@ TMPL01
 cat << TMPL02 > $jsonexportfile2
 // Generated boilerplate code for MySQL DB $dbname table $tblname
 type $structname struct {
+Type string \`json:"type"\`
 TMPL02
 
 cat << TMPL03 > $jsondbfile2
