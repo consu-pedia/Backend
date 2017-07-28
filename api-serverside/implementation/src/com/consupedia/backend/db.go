@@ -157,7 +157,7 @@ func Getproductsautocompletequery(db *sql.DB, autostring string, resultlimit int
 	}
 
 	// ERROR complained... var querystring string ="SELECT id, fullname FROM products WHERE name LIKE CONCAT('%',:p1,'%') OR fullname LIKE CONCAT('%',:p2,'%') ORDER BY POSITION(:p3 IN LCASE(name)), LENGTH(fullname) LIMIT :p4;"
-	var querystring string = "SELECT * FROM products WHERE name LIKE CONCAT('%',?,'%') OR fullname LIKE CONCAT('%',?,'%') ORDER BY POSITION(? IN LCASE(name)), LENGTH(fullname) LIMIT ?;"
+	var querystring string = "SELECT id, fullname FROM products WHERE name LIKE CONCAT('%',?,'%') OR fullname LIKE CONCAT('%',?,'%') ORDER BY POSITION(? IN LCASE(name)), LENGTH(fullname) LIMIT ?;"
 
 	// , ['p1' => $term, 'p2' => $term, 'p3' => $term]);
 

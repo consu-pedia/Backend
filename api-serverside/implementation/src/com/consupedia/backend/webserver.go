@@ -439,15 +439,13 @@ func webserverproductbygtinhandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func webserverproductsautocompletehandler(w http.ResponseWriter, r *http.Request) {
-	var autocompleteprovided bool = false
-	var autocomplete string = ""
 	var reststring string = ""
 	var productslice []Productstruct = nil
 	var jsonbytes []byte = nil
 	var rc int = 0
 	var MAXAUTOCOMPLETERC int = 10
 
-	fmt.Fprintf(w, "<br/>%s STUB\n", PRODUCTSAUTOCOMPLETEAPI)
+	//DBG fmt.Fprintf(w, "<br/>%s STUB\n", PRODUCTSAUTOCOMPLETEAPI)
 	// set headers in response
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
@@ -458,16 +456,13 @@ func webserverproductsautocompletehandler(w http.ResponseWriter, r *http.Request
 	if (len(matchthis) == len(PRODUCTSAUTOCOMPLETEAPI)) ||
 		((len(matchthis) == len(PRODUCTSAUTOCOMPLETEAPI)+1) && (matchthis[len(PRODUCTSAUTOCOMPLETEAPI)] == '/')) {
 		// only all products
-		autocompleteprovided = false
 		reststring = ""
 		return
 	}
 
 	// assert (reststring at least 1 letter long)
 	reststring = matchthis[len(PRODUCTSAUTOCOMPLETEAPI)+1:]
-	autocompleteprovided = true
-	autocomplete = reststring
-	fmt.Fprintf(w, "<br/>DBG autocomplete = \"%s\" provided=%v\n", autocomplete, autocompleteprovided)
+	//DBG fmt.Fprintf(w, "<br/>DBG autocomplete = \"%s\" provided=%v\n", autocomplete, autocompleteprovided)
 	rows, err := Getproductsautocompletequery(Productsdb, reststring, MAXAUTOCOMPLETERC)
 	defer rows.Close()
 	if err != nil {
@@ -483,7 +478,16 @@ func webserverproductsautocompletehandler(w http.ResponseWriter, r *http.Request
 		//			break
 		//		}
 
-		productrec, err := ScanProduct(rows)
+		// N.B. !! don't use ScanProduct, we only have 2 columns id and fullname
+		var colid int
+		var fullname string
+		err = rows.Scan(&colid, &fullname)
+		if err != nil {
+			rc = -1
+			break
+		}
+
+		productrec := Productstruct{Type: TYPE_PRODUCT, Id: colid, Fullname: fullname}
 
 		if err != nil {
 			rc = -1
