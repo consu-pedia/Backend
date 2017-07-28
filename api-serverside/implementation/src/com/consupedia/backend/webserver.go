@@ -365,6 +365,11 @@ func webserverproductbygtinhandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "<html><body><br/>This was a %s request, </body></html>\n", r.Method)
 	}
 
+	// set headers in response
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	matchthis := r.URL.String()
 	if DEBUG {
 		fmt.Fprintf(w, "<br/>DBG matchthis &lt;%s&gt;\n", matchthis)
@@ -439,6 +444,11 @@ func webserverproductshandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "<html><body>\n")
 		fmt.Fprintf(w, "products dispatcher here see if works %s %s", r.URL, r.URL.Path[1:])
 	}
+
+	// set headers in response
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	if DEBUG {
 		fmt.Fprintf(w, "<html><body><br/>This was a %s request, </body></html>\n", r.Method)
