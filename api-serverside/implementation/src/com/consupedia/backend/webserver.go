@@ -13,7 +13,8 @@ import (
 
 var PRODUCTSAPI string = "/api/v1/products"
 var PRODUCTBYGTINAPI string = "/api/v1/products/gtin"
-var Allpathsregexp = regexp.MustCompile("^(" + PRODUCTSAPI + "|" + PRODUCTBYGTINAPI + ")")
+var PRODUCTSAUTOCOMPLETEAPI string = "/api/v1/products/autocomplete"
+var Allpathsregexp = regexp.MustCompile("^(" + PRODUCTSAPI + "|" + PRODUCTBYGTINAPI + "|" + PRODUCTSAUTOCOMPLETEAPI + ")")
 var productidregexp = regexp.MustCompile("^[0-9]+")
 
 // basically a number with too many zeroes at the beginning
@@ -114,6 +115,7 @@ func singleproductgtinquery(w http.ResponseWriter, gtin string) (err error) {
 	var wherestring string = fmt.Sprintf("gtin = %c%v%c", squot, gtin, squot)
 
 	rows, err := Getproductsquery(Productsdb, wherestring)
+	defer rows.Close()
 	if err != nil {
 		panic(err)
 	}
@@ -436,6 +438,75 @@ func webserverproductbygtinhandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func webserverproductsautocompletehandler(w http.ResponseWriter, r *http.Request) {
+	var autocompleteprovided bool = false
+	var autocomplete string = ""
+	var reststring string = ""
+	var productslice []Productstruct = nil
+	var jsonbytes []byte = nil
+	var rc int = 0
+	var MAXAUTOCOMPLETERC int = 10
+
+	fmt.Fprintf(w, "<br/>%s STUB\n", PRODUCTSAUTOCOMPLETEAPI)
+	// set headers in response
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	matchthis := r.URL.String()
+
+	// special case no reststring
+	if (len(matchthis) == len(PRODUCTSAUTOCOMPLETEAPI)) ||
+		((len(matchthis) == len(PRODUCTSAUTOCOMPLETEAPI)+1) && (matchthis[len(PRODUCTSAUTOCOMPLETEAPI)] == '/')) {
+		// only all products
+		autocompleteprovided = false
+		reststring = ""
+		return
+	}
+
+	// assert (reststring at least 1 letter long)
+	reststring = matchthis[len(PRODUCTSAUTOCOMPLETEAPI)+1:]
+	autocompleteprovided = true
+	autocomplete = reststring
+	fmt.Fprintf(w, "<br/>DBG autocomplete = \"%s\" provided=%v\n", autocomplete, autocompleteprovided)
+	rows, err := Getproductsautocompletequery(Productsdb, reststring, MAXAUTOCOMPLETERC)
+	defer rows.Close()
+	if err != nil {
+		panic(err)
+	}
+	// grmbl grmbl why nothing faster
+	rc = 0
+	for rows.Next() {
+
+		// limit returned rows to first MAXAUTOCOMPLETERC
+		// naah.. let the SQL query do that LIMIT clause
+		//		if rc >= MAXAUTOCOMPLETERC {
+		//			break
+		//		}
+
+		productrec, err := ScanProduct(rows)
+
+		if err != nil {
+			rc = -1
+			break
+		}
+		if DEBUG {
+			fmt.Fprintf(w, "<br/># %d %d %s %s\n", rc, productrec.Id, productrec.Name, productrec.Fullname)
+		}
+
+		productslice = append(productslice, productrec)
+
+		// add to array of Product
+
+		rc++
+	}
+
+	jsonbytes, err = Makejson(productslice)
+
+	jsonstring := string(jsonbytes)
+	fmt.Fprintf(w, "%s\n", jsonstring)
+	return
+}
+
 func webserverproductshandler(w http.ResponseWriter, r *http.Request) {
 	var productidprovided bool = false
 	var productid int
@@ -551,6 +622,7 @@ func Webserver(proddb *sql.DB) {
 	Productsdb = proddb
 	fmt.Fprintf(os.Stderr, "starting webserver\n")
 	http.HandleFunc(PRODUCTBYGTINAPI+"/", webserverproductbygtinhandler)
+	http.HandleFunc(PRODUCTSAUTOCOMPLETEAPI+"/", webserverproductsautocompletehandler)
 	http.HandleFunc(PRODUCTSAPI, webserverproductshandler)
 	// srsly WTF??
 	http.HandleFunc(PRODUCTSAPI+"/", webserverproductshandler)

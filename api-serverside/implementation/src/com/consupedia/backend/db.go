@@ -146,6 +146,42 @@ func Getproductsrecord(db *sql.DB, id int) (prod Productstruct, err error) {
 
 }
 
+func Getproductsautocompletequery(db *sql.DB, autostring string, resultlimit int) (rows *sql.Rows, err error) {
+	//	var querystring string = "SELECT id, fullname FROM products WHERE name LIKE CONCAT('%Hall%') OR fullname LIKE CONCAT('%Hall%') ORDER BY POSITION('Hall' IN LCASE(name)), LENGTH(fullname) LIMIT 10;"
+
+	// DB::select("SELECT id, fullname FROM products WHERE name LIKE CONCAT('%',:p1,'%') OR fullname LIKE CONCAT('%',:p2,'%') ORDER BY POSITION(:p3 IN LCASE(name)), LENGTH(fullname) LIMIT 10;", ['p1' => $term, 'p2' => $term, 'p3' => $term]);
+
+	if autostring != "" {
+		var sanitized_autostring string = autostring // TODO
+		autostring = sanitized_autostring
+	}
+
+	// ERROR complained... var querystring string ="SELECT id, fullname FROM products WHERE name LIKE CONCAT('%',:p1,'%') OR fullname LIKE CONCAT('%',:p2,'%') ORDER BY POSITION(:p3 IN LCASE(name)), LENGTH(fullname) LIMIT :p4;"
+	var querystring string = "SELECT * FROM products WHERE name LIKE CONCAT('%',?,'%') OR fullname LIKE CONCAT('%',?,'%') ORDER BY POSITION(? IN LCASE(name)), LENGTH(fullname) LIMIT ?;"
+
+	// , ['p1' => $term, 'p2' => $term, 'p3' => $term]);
+
+	stmt, err := db.Prepare(querystring)
+	if err != nil {
+		panic(err)
+	}
+
+	if DEBUG {
+		fmt.Printf("<br/>DBG executing DB query \"%s\"\n", querystring)
+	}
+
+	rows, err = stmt.Query(autostring, autostring, autostring, resultlimit)
+	if err != nil {
+		panic(err)
+	}
+	//	defer rows.Close()
+
+	//	stmt.Close()
+	//	db.Close()
+	return rows, err
+
+}
+
 func Getproductsquery(db *sql.DB, wherestring string) (rows *sql.Rows, err error) {
 	// from documentation https://github.com/go-sql-driver/mysql/blob/master/README.md#dsn-data-source-name:
 	// DSN (Data Source Name)
