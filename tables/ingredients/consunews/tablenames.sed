@@ -1,0 +1,1 @@
+s/`_TABLE_Article`/`articles`/g;s/`_TABLE_`/``/g;s/`_TABLE_Keyword`/`keywords`/g;s/`_TABLE_Keywordarticle`/`article_keyword`/g;s/`_TABLE_`/``/g;s/`_TABLE_Search`/`searches`/g;s/`_TABLE_`/``/g;s/`_TABLE_Keywordsearch`/`keyword_search`/g;s/`_TABLE_`/``/g;s/`_TABLE_Searchresult`/`searchresults`/g;s/`_TABLE_`/``/g;s/`_TABLE_Sitetable`/`sites`/g;

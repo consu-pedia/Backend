@@ -14,7 +14,7 @@ cat |\
   sed -e 's/^USE \[dbTGSAnalysTest\]/USE \[consunews\]/;' |\
   sed -e 's/SET ANSI_NULLS ON//' |\
   sed -e 's/SET QUOTED_IDENTIFIER ON//' |\
-  sed -e 's/\[dbo\]\.\[/\[/g;' |\
+  sed -e 's/\[dbo\]\.\[/\[_TABLE_/g;' |\
   sed -e 's/CREATE TABLE \(\[[^]]*\)\]/DROP TABLE IF EXISTS \1\];\
 CREATE TABLE \1\] /;' |\
   sed -e 's/\[/`/; s/\]/`/;' |\
@@ -25,8 +25,12 @@ CREATE TABLE \1\] /;' |\
   awk -f convert_insert_lines.awk |\
   awk '/^INSERT/ {if(p!="GO"){p=p ";"}} /^GO[;]*$/ {plastchar=substr(p,length(p),1);if (plastchar == ")"){ p=p ";"; printf("DBG pre-go p %s lastchar %s\n",p,plastchar) > "/dev/null";}} {print p;p=$0;} END {print p;}' |\
   awk '/^ALTER TABLE/ {printf("PLEASE EDIT NEXT LINE MANUALLY\n");} {print;}' |\
-  sed 's/`Article`/`articles`/g;s/`Batchentry`/`batchentries`/g;s/`Keyword`/`keywords`/g;s/`Keywordarticle`/`keyword_article`/g;s/`Keywordsearch`/`keyword_search`/g;s/`Search`/`searches`/g;s/`Searchresult`/`searchresults`/g;s/`Sitetable`/`newssites`/g;' |\
+  sed -f fieldnames.sed |\
+  sed -f tablenames.sed |\
   cat
+
+# IMPORTANT: do the sed of fieldnames first, then the sed of tablenames
+  # sed 's/`Article`/`articles`/g;s/`Batchentry`/`batchentries`/g;s/`Keyword`/`keywords`/g;s/`Keywordarticle`/`keyword_article`/g;s/`Keywordsearch`/`keyword_search`/g;s/`Search`/`searches`/g;s/`Searchresult`/`searchresults`/g;s/`Sitetable`/`newssites`/g;' |\
 
 exit 0
 # reserved for error messages
