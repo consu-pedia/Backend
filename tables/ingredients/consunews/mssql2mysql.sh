@@ -9,6 +9,10 @@
 # ASSUMPTION first [] is for field name (and table name), change those to backtics
 # ASSUMPTION second [] translate field types
 
+# the Articles INSERT stmts are very long (10 lines sometimes) and the contents of the text can end on a close parenthesis ) (why not?).
+# This makes it difficult to add a required semicolon to the end of the statement.
+# the last sed before the ALTER TABLE awk is a bit of a hack (low-risk)
+
 cat |\
   tr -d '\r' |\
   sed -e 's/^USE \[dbTGSAnalysTest\]/USE \[consunews\]/;' |\
@@ -24,6 +28,8 @@ CREATE TABLE \1\] /;' |\
   sed -e 's/\[varchar\]/VARCHAR /g; s/\[int\]/INT /g; s/\[real\]/DOUBLE /g; s/\[date\]/DATE /g; s/\[bit\]/TINYINT /g' |\
   awk -f convert_insert_lines.awk |\
   awk '/^INSERT/ {if(p!="GO"){p=p ";"}} /^GO[;]*$/ {plastchar=substr(p,length(p),1);if (plastchar == ")"){ p=p ";"; printf("DBG pre-go p %s lastchar %s\n",p,plastchar) > "/dev/null";}} {print p;p=$0;} END {print p;}' |\
+  awk '/^INSERT.*))$/ {modified=1;print $0 ";"; print "HACK add semicolon " $0 > "/dev/stderr"; } { if (modified==0){print;}else{modified=0;}; }' |\
+  sed -e 's/^GO;*$/\/* GO; *\//' |\
   awk '/^ALTER TABLE/ {printf("PLEASE EDIT NEXT LINE MANUALLY\n");} {print;}' |\
   sed -f fieldnames.sed |\
   sed -f tablenames.sed |\
