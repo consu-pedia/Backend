@@ -368,7 +368,7 @@ func webserverproductbygtinhandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// set headers in response
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=\"UTF-8\"")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
@@ -447,7 +447,7 @@ func webserverproductsautocompletehandler(w http.ResponseWriter, r *http.Request
 
 	//DBG fmt.Fprintf(w, "<br/>%s STUB\n", PRODUCTSAUTOCOMPLETEAPI)
 	// set headers in response
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=\"UTF-8\"")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	matchthis := r.URL.String()
@@ -521,7 +521,7 @@ func webserverproductshandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// set headers in response
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json; charset=\"UTF-8\"")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 

@@ -11,9 +11,17 @@ import (
 )
 
 // N.B. variable DEBUG is declared in webserver.go
+var ProductsByIdQuery *sql.Stmt = nil
 
-func Initproductsdb() *sql.DB {
-	db, err := sql.Open("mysql", "root:@tcp(10.60.218.110:3306)/consuweb?charset=utf8")
+func Initproductsdb(dsn string) *sql.DB {
+	// from documentation https://github.com/go-sql-driver/mysql/blob/master/README.md#dsn-data-source-name:
+	// DSN (Data Source Name)
+	// The Data Source Name has a common format, like e.g. PEAR DB uses it, but without type-prefix (optional parts marked by squared brackets):
+	// [username[:password]@][protocol[(address)]]/dbname[?param1=value1&...&paramN=valueN]
+	// A DSN in its fullest form:
+	// username:password@protocol(address)/dbname?param=value
+	// Except for the databasename, all values are optional. So the minimal DSN is: /dbname
+	db, err := sql.Open("mysql", dsn)
 	if err != nil {
 		panic(err)
 	}
@@ -24,6 +32,9 @@ func Initproductsdb() *sql.DB {
 		fmt.Fprintf(os.Stderr, "ERROR: could not connect to Consuweb MySQL DB, quitting.\n")
 		panic(err)
 	}
+
+	// this sounds like a good time to initialize the queries
+	ProductsByIdQuery, err = db.Prepare("SELECT * FROM products WHERE id = ?")
 	return (db)
 }
 
@@ -69,7 +80,13 @@ func ScanProduct(rows *sql.Rows) (prod Productstruct, err error) {
 	}
 
 	if imageHolder != nil {
-		image = imageHolder.(string)
+		imageBytes := imageHolder.([]byte)
+		if imageBytes == nil {
+			image = ""
+			fmt.Printf("ERROR imageHolder casting to []byte\n")
+		} else {
+			image = string(imageBytes)
+		}
 	} else {
 		image = ""
 	}
@@ -104,26 +121,9 @@ func ScanProduct(rows *sql.Rows) (prod Productstruct, err error) {
 }
 
 func Getproductsrecord(db *sql.DB, id int) (prod Productstruct, err error) {
-	// from documentation https://github.com/go-sql-driver/mysql/blob/master/README.md#dsn-data-source-name:
-	// DSN (Data Source Name)
-	// The Data Source Name has a common format, like e.g. PEAR DB uses it, but without type-prefix (optional parts marked by squared brackets):
-	// [username[:password]@][protocol[(address)]]/dbname[?param1=value1&...&paramN=valueN]
-	// A DSN in its fullest form:
-	// username:password@protocol(address)/dbname?param=value
-	// Except for the databasename, all values are optional. So the minimal DSN is: /dbname
-	//	db := Initproductsdb()
-
-	stmt, err := db.Prepare("SELECT * FROM products WHERE id = ?")
-	// stmt, err := db.Prepare("SELECT id, name FROM products")
-	if err != nil {
-		panic(err)
-	}
-
-	// id_in := 1
 	id_in := id
 
-	rows, err := stmt.Query(id_in)
-	// rows, err := stmt.Query()
+	rows, err := ProductsByIdQuery.Query(id_in)
 	if err != nil {
 		panic(err)
 	}
@@ -183,15 +183,6 @@ func Getproductsautocompletequery(db *sql.DB, autostring string, resultlimit int
 }
 
 func Getproductsquery(db *sql.DB, wherestring string) (rows *sql.Rows, err error) {
-	// from documentation https://github.com/go-sql-driver/mysql/blob/master/README.md#dsn-data-source-name:
-	// DSN (Data Source Name)
-	// The Data Source Name has a common format, like e.g. PEAR DB uses it, but without type-prefix (optional parts marked by squared brackets):
-	// [username[:password]@][protocol[(address)]]/dbname[?param1=value1&...&paramN=valueN]
-	// A DSN in its fullest form:
-	// username:password@protocol(address)/dbname?param=value
-	// Except for the databasename, all values are optional. So the minimal DSN is: /dbname
-	//	db := Initproductsdb()
-
 	var querystring string = "SELECT * FROM products"
 	if wherestring != "" {
 		var sanitized_wherestring string = wherestring // TODO
