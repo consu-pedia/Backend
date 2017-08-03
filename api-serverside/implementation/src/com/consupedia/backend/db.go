@@ -59,9 +59,9 @@ func ScanProduct(rows *sql.Rows) (prod Productstruct, err error) {
 	var manufacturerIdHolder interface{} = nil
 
 	// sql: Scan error on column index 12: unsupported Scan, storing driver.Value type []uint8 into type *time.Time
-	var created_at time.Time
+	var created_at *time.Time
 	var createdAtHolder interface{} = nil
-	var updated_at time.Time
+	var updated_at *time.Time
 	var updatedAtHolder interface{} = nil
 	err = rows.Scan(&colid, &gtin, &name, &fullname, &sizeHolder, &sizeunitIdHolder, &imageHolder, &bulk, &descriptionHolder, &category_id, &brandIdHolder, &manufacturerIdHolder, &createdAtHolder, &updatedAtHolder)
 	if err != nil {
@@ -116,7 +116,7 @@ func ScanProduct(rows *sql.Rows) (prod Productstruct, err error) {
 	updated_at, err = sqlhelper.Sqltime2Gotime(updatedAtHolder)
 
 	fmt.Printf("ScanProduct(): just read record %v name %v\n", colid, name)
-	prod = Productstruct{Type: TYPE_PRODUCT, Id: colid, Gtin: gtin, Name: name, Fullname: fullname, Size: size, SizeunitId: sizeunitId, Image: image, Bulk: bulk, Description: description, CategoryId: category_id, BrandId: brand_id, ManufacturerId: manufacturer_id, CreatedAt: &created_at, UpdatedAt: &updated_at}
+	prod = Productstruct{Type: TYPE_PRODUCT, Id: colid, Gtin: gtin, Name: name, Fullname: fullname, Size: size, SizeunitId: sizeunitId, Image: image, Bulk: bulk, Description: description, CategoryId: category_id, BrandId: brand_id, ManufacturerId: manufacturer_id, CreatedAt: created_at, UpdatedAt: updated_at}
 	return prod, nil
 }
 

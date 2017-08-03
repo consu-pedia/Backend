@@ -183,7 +183,7 @@ for fldi in $( seq 1 $nflds ); do
 
   case "$dbfldtype" in
 "time")
-    echo "$dbfldname, err = Sqltime2Gotime($dbholderfldname)" >> $jsondbfile4
+    echo "$dbfldname, err = sqlhelper.Sqltime2Gotime($dbholderfldname)" >> $jsondbfile4
     ;;
 
 "int")
@@ -232,6 +232,7 @@ TMPL07
 if [ $has_time_fields -gt 0 ]; then
   echo "\"time\"" >> $jsonexportfile1
   echo "\"time\"" >> $jsondbfile1
+  echo "\"com/consupedia/backend/sqlhelper\"" >> $jsondbfile1
 fi
 
 cat << TMPL08 >> $jsonexportfile1

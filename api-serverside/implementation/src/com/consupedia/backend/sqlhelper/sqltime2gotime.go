@@ -17,9 +17,10 @@ import (
 // which doesn't exist
 // It was maybe a bit silly for me to write this but I couldn't find an
 // existing implementation. Frits.
-func Sqltime2Gotime(sqltime interface{}) (gotime time.Time, err error) {
+func Sqltime2Gotime(sqltime interface{}) (gotimep *time.Time, err error) {
 	var tmptimebytes []byte
 	var ttime string
+	var gotime time.Time
 
 	if sqltime != nil {
 		tmptimebytes = sqltime.([]byte)
@@ -34,5 +35,6 @@ func Sqltime2Gotime(sqltime interface{}) (gotime time.Time, err error) {
 	} else {
 		gotime = time.Unix(0, 0)
 	}
-	return gotime, err
+	gotimep = &gotime
+	return gotimep, err
 }
