@@ -7,10 +7,10 @@ CREATE TABLE temporarynuts (
 )
 
 DELETE FROM temporarynuts;
-INSERT INTO temporarynuts SET id=1, textincludingunits="15mg (11 % av DRI)  ", template="__ZUANTITY____UNIT__ (11 % av DRI)  ", unittext="mg";
-INSERT INTO temporarynuts SET id=2, textincludingunits="1g.  ", template="__ZUANTITY____UNIT__.  ", unittext="g";
-INSERT INTO temporarynuts SET id=3, textincludingunits="6 g  ", template="__ZUANTITY__ __UNIT__  ", unittext="g";
-INSERT INTO temporarynuts SET id=4, textincludingunits="8g  ", template="__ZUANTITY____UNIT__  ", unittext="g";
+INSERT INTO temporarynuts SET id=1, textincludingunits="15mg (11 % av DRI)  ", template="__QUANTITY____UNIT__ (11 % av DRI)  ", unittext="mg";
+INSERT INTO temporarynuts SET id=2, textincludingunits="1g.  ", template="__QUANTITY____UNIT__.  ", unittext="g";
+INSERT INTO temporarynuts SET id=3, textincludingunits="6 g  ", template="__QUANTITY__ __UNIT__  ", unittext="g";
+INSERT INTO temporarynuts SET id=4, textincludingunits="8g  ", template="__QUANTITY____UNIT__  ", unittext="g";
 INSERT INTO temporarynuts SET id=5, textincludingunits=" används ej __QUANTITY__ Gram", template=" används ej __QUANTITY__ __UNIT__", unittext="Gram";
 INSERT INTO temporarynuts SET id=6, textincludingunits="Biotin __QUANTITY__ Mikrogram", template="Biotin __QUANTITY__ __UNIT__", unittext="Mikrogram";
 INSERT INTO temporarynuts SET id=7, textincludingunits="CHO- __QUANTITY__ Gram", template="CHO- __QUANTITY__ __UNIT__", unittext="Gram";
@@ -25,8 +25,8 @@ INSERT INTO temporarynuts SET id=15, textincludingunits="Energi __QUANTITY__ Kil
 INSERT INTO temporarynuts SET id=16, textincludingunits="energi __QUANTITY__ kilokalorier", template="energi __QUANTITY__ __UNIT__", unittext="kilokalorier";
 INSERT INTO temporarynuts SET id=17, textincludingunits="Energi __QUANTITY__ kJ", template="Energi __QUANTITY__ __UNIT__", unittext="kJ";
 INSERT INTO temporarynuts SET id=18, textincludingunits="Energi __QUANTITY__ Milligram", template="Energi __QUANTITY__ __UNIT__", unittext="Milligram";
-INSERT INTO temporarynuts SET id=19, textincludingunits="Energi __ZUANTITY_RANGE__ Kilojoule", template="Energi __ZUANTITY_RANGE__ __UNIT__", unittext="Kilojoule";
-INSERT INTO temporarynuts SET id=20, textincludingunits="Energi __ZUANTITY_RANGE__ Kilokalori", template="Energi __ZUANTITY_RANGE__ __UNIT__", unittext="Kilokalori";
+INSERT INTO temporarynuts SET id=19, textincludingunits="Energi __QUANTITY_RANGE__ Kilojoule", template="Energi __QUANTITY_RANGE__ __UNIT__", unittext="Kilojoule";
+INSERT INTO temporarynuts SET id=20, textincludingunits="Energi __QUANTITY_RANGE__ Kilokalori", template="Energi __QUANTITY_RANGE__ __UNIT__", unittext="Kilokalori";
 INSERT INTO temporarynuts SET id=21, textincludingunits="Energivärde: __QUANTITY__ kcal", template="Energivärde: __QUANTITY__ __UNIT__", unittext="kcal";
 INSERT INTO temporarynuts SET id=22, textincludingunits="Energivärde: __QUANTITY__ kJ", template="Energivärde: __QUANTITY__ __UNIT__", unittext="kJ";
 INSERT INTO temporarynuts SET id=23, textincludingunits="Fett34 g  ", template="Fett34 __UNIT__  ", unittext="g";
@@ -113,7 +113,7 @@ INSERT INTO temporarynuts SET id=103, textincludingunits="varav sockerarter __QU
 INSERT INTO temporarynuts SET id=104, textincludingunits="Varav sockerarter __QUANTITY__ Gram", template="Varav sockerarter __QUANTITY__ __UNIT__", unittext="Gram";
 INSERT INTO temporarynuts SET id=105, textincludingunits="varav sockerater __QUANTITY__ g", template="varav sockerater __QUANTITY__ __UNIT__", unittext="g";
 INSERT INTO temporarynuts SET id=106, textincludingunits="Varav stärkelse __QUANTITY__ Gram", template="Varav stärkelse __QUANTITY__ __UNIT__", unittext="Gram";
-INSERT INTO temporarynuts SET id=107, textincludingunits="Vitamin A__ZUANTITY__ µg (39% av DRI*) *Dagligt Referensintag  ", template="Vitamin A310 __UNIT__ (39% av DRI*) *Dagligt Referensintag  ", unittext="µg";
+INSERT INTO temporarynuts SET id=107, textincludingunits="Vitamin A310 µg (39% av DRI*) *Dagligt Referensintag  ", template="Vitamin A__QUANTITY__ __UNIT__ (39% av DRI*) *Dagligt Referensintag  ", unittext="µg";
 INSERT INTO temporarynuts SET id=108, textincludingunits="Vitamin A __QUANTITY__ g", template="Vitamin A __QUANTITY__ __UNIT__", unittext="g";
 INSERT INTO temporarynuts SET id=109, textincludingunits="Vitamin A __QUANTITY__ Mikrogram", template="Vitamin A __QUANTITY__ __UNIT__", unittext="Mikrogram";
 INSERT INTO temporarynuts SET id=110, textincludingunits="Vitamin B12 __QUANTITY__ g", template="Vitamin B12 __QUANTITY__ __UNIT__", unittext="g";
