@@ -9,6 +9,7 @@ cat $OUTDIR/tmp.placeholder |\
   sed -e 's/^ *[0-9][0-9]* => //' |\
   sed -e 's/ [0-9][0-9,.]*|PIM_MULTIVALUE_SEPARATOR|[0-9][0-9,.]*\([^0-9]\)/ QUANTITY_RANGE\1/g' |\
   sed -e 's/ [0-9][0-9,.]*\([^0-9]\)/ QUANTITY\1/g' |\
+  sed -e 's/^\x27//;s/\x27,$//;' |\
   sort |\
   uniq > $OUTDIR/tmp.nuts
   
