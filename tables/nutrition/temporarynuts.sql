@@ -29,7 +29,7 @@ INSERT INTO temporarynuts SET id=19, textincludingunits="Energi __QUANTITY_RANGE
 INSERT INTO temporarynuts SET id=20, textincludingunits="Energi __QUANTITY_RANGE__ Kilokalori", template="Energi __QUANTITY_RANGE__ __UNIT__", unittext="Kilokalori";
 INSERT INTO temporarynuts SET id=21, textincludingunits="Energivärde: __QUANTITY__ kcal", template="Energivärde: __QUANTITY__ __UNIT__", unittext="kcal";
 INSERT INTO temporarynuts SET id=22, textincludingunits="Energivärde: __QUANTITY__ kJ", template="Energivärde: __QUANTITY__ __UNIT__", unittext="kJ";
-INSERT INTO temporarynuts SET id=23, textincludingunits="Fett34 g  ", template="Fett34 __UNIT__  ", unittext="g";
+INSERT INTO temporarynuts SET id=23, textincludingunits="Fett34 g  ", template="Fett__QUANTITY__ __UNIT__  ", unittext="g";
 INSERT INTO temporarynuts SET id=24, textincludingunits="Fett __QUANTITY__ g", template="Fett __QUANTITY__ __UNIT__", unittext="g";
 INSERT INTO temporarynuts SET id=25, textincludingunits="Fett __QUANTITY__g  ", template="Fett __QUANTITY____UNIT__  ", unittext="g";
 INSERT INTO temporarynuts SET id=26, textincludingunits="fett __QUANTITY__ gram", template="fett __QUANTITY__ __UNIT__", unittext="gram";
@@ -57,7 +57,7 @@ INSERT INTO temporarynuts SET id=47, textincludingunits="Kalium __QUANTITY__ mg"
 INSERT INTO temporarynuts SET id=48, textincludingunits="Kalium __QUANTITY__ Milligram", template="Kalium __QUANTITY__ __UNIT__", unittext="Milligram";
 INSERT INTO temporarynuts SET id=49, textincludingunits="Klorid __QUANTITY__ mg", template="Klorid __QUANTITY__ __UNIT__", unittext="mg";
 INSERT INTO temporarynuts SET id=50, textincludingunits="Klorid __QUANTITY__ Milligram", template="Klorid __QUANTITY__ __UNIT__", unittext="Milligram";
-INSERT INTO temporarynuts SET id=51, textincludingunits="Kolhydrat11 g  ", template="Kolhydrat11 __UNIT__  ", unittext="";
+INSERT INTO temporarynuts SET id=51, textincludingunits="Kolhydrat11 g  ", template="Kolhydrat__QUANTITY__ __UNIT__  ", unittext="";
 INSERT INTO temporarynuts SET id=52, textincludingunits="Kolhydrater __QUANTITY__ g", template="Kolhydrater __QUANTITY__ __UNIT__", unittext="g";
 INSERT INTO temporarynuts SET id=53, textincludingunits="Kolhydrater __QUANTITY__g  ", template="Kolhydrater __QUANTITY____UNIT__  ", unittext="g";
 INSERT INTO temporarynuts SET id=54, textincludingunits="Kolhydrat __QUANTITY__ g", template="Kolhydrat __QUANTITY__ __UNIT__", unittext="g";
