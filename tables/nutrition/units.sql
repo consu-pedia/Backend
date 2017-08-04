@@ -1,22 +1,29 @@
-DROP TABLE units;
-CREATE TABLE units (
-  id int(11) NOT NULL,
-  unit varchar(255) NOT NULL,
-)
+--
+-- Table structure for table `units`
+--
+DROP TABLE IF EXISTS `units`;
+CREATE TABLE `units` (
+  `id` int(11) NOT NULL,
+  `unitname` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- Dumping data for table `units`
+--
 
-DELETE FROM units;
-INSERT INTO units SET id=1, unit="";
-INSERT INTO units SET id=2, unit="µg";
-INSERT INTO units SET id=3, unit="g";
-INSERT INTO units SET id=4, unit="gram";
-INSERT INTO units SET id=5, unit="Gram";
-INSERT INTO units SET id=6, unit="kcal";
-INSERT INTO units SET id=7, unit="kilojoule";
-INSERT INTO units SET id=8, unit="Kilojoule";
-INSERT INTO units SET id=9, unit="Kilokalori";
-INSERT INTO units SET id=10, unit="kilokalorier";
-INSERT INTO units SET id=11, unit="kJ";
-INSERT INTO units SET id=12, unit="mg";
-INSERT INTO units SET id=13, unit="Mikrogram";
-INSERT INTO units SET id=14, unit="Milligram";
+LOCK TABLES `units` WRITE;
+
+INSERT INTO units VALUES( 1, NULL );
+INSERT INTO units VALUES( 2, 'µg' );
+INSERT INTO units VALUES(3, 'g' );
+INSERT INTO units VALUES(4, 'gram' );
+INSERT INTO units VALUES(5, 'Gram' );
+INSERT INTO units VALUES(6, 'kcal' );
+INSERT INTO units VALUES(7, 'kilojoule' );
+INSERT INTO units VALUES(8, 'Kilojoule' );
+INSERT INTO units VALUES(9, 'Kilokalori' );
+INSERT INTO units VALUES(10, 'kilokalorier' );
+INSERT INTO units VALUES(11, 'kJ' );
+INSERT INTO units VALUES(12, 'mg' );
+INSERT INTO units VALUES(13, 'Mikrogram' );
+INSERT INTO units VALUES(14, 'Milligram' );

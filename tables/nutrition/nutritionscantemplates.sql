@@ -2,13 +2,13 @@
  * Sorry.
  */
 
-DROP TABLE nutritionscantemplates;
+DROP TABLE IF EXISTS nutritionscantemplates;
 CREATE TABLE nutritionscantemplates (
   id int(11) NOT NULL,
   template varchar(255) NOT NULL,
   nvalues int(2),
   scantemplate varchar(255) NOT NULL
-)
+) DEFAULT CHARSET=utf8;
 
 DELETE FROM nutritionscantemplates;
 INSERT INTO nutritionscantemplates SET id=1, template="*Dagligt Referensintag  ", nvalues=0, scantemplate="*Dagligt Referensintag  ";

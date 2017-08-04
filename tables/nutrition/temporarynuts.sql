@@ -1,10 +1,10 @@
-DROP TABLE temporarynuts;
+DROP TABLE IF EXISTS temporarynuts;
 CREATE TABLE temporarynuts (
   id int(11) NOT NULL,
   textincludingunits varchar(255) NOT NULL,
   template varchar(255) NOT NULL,
-  unittext varchar(255),
-)
+  unittext varchar(255)
+);
 
 DELETE FROM temporarynuts;
 INSERT INTO temporarynuts SET id=1, textincludingunits="15mg (11 % av DRI)  ", template="__QUANTITY____UNIT__ (11 % av DRI)  ", unittext="mg";
