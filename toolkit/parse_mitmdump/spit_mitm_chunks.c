@@ -3,12 +3,13 @@
 #include <string.h>
 #include <stdint.h>
 #include <errno.h>
+#include <time.h>
 
 #define BLOCKSZ		4096
-#define DEBUG
+#undef DEBUG
 
-static int opt_chunking = 0;
-static size_t opt_chunking_high = 4096*131072;
+static int opt_chunking = 1;
+static size_t opt_chunking_high = 131072;
 
 
 typedef struct hdr_proto {
@@ -77,6 +78,18 @@ static int parse_hdr_2(FILE *s, hdr_p curhdr, uint8_t *numbuf, int *return_hdrle
   return(0);
 }
 
+static char *now(void)
+{
+  static char nowstr[64];
+  time_t tnow = time(NULL);
+
+  nowstr[0]='\0';
+  nowstr[64-1]='\0';
+  strftime(nowstr, 64-1, "%Y%m%d.%H%M", localtime(&tnow));
+
+  return(nowstr);
+}
+
 int main(int argc, char *argv[])
 {
   hdr_t hdr;
@@ -94,9 +107,11 @@ int main(int argc, char *argv[])
   int quit;
   int do_emit;
   size_t nbrchunks;
+  char nowstr[256];
 
   memset(&hdr, 0x00, sizeof(hdr));
   memset(&numbuf[0], 0x00, sizeof(numbuf));
+
 
   nbrchunks = 0;
 
@@ -111,16 +126,21 @@ int main(int argc, char *argv[])
   nbtoread = /* hdrlen + 1 for : + */ hdr.len + 1;
   nbrchunks = hdrlen + nbtoread;
 
+  outf = fopen(DEFAULT_OUTFNAME, "w");
+  if (outf==NULL){
+    fprintf(stderr,"spit_mitm_chunks(): ERROR writing %s: %s\n", DEFAULT_OUTFNAME, strerror(errno));
+    exit(1);
+  }
+
   quit=1;
   do_emit=0;
   do { /* MAIN LOOP */
-    quit=0;
-    outf = fopen(DEFAULT_OUTFNAME, "w");
-    if (outf==NULL){
-      fprintf(stderr,"spit_mitm_chunks(): ERROR writing %s: %s\n", DEFAULT_OUTFNAME, strerror(errno));
-      exit(1);
-    }
+    /* at the beginning of the main loop we always have:
+       - just read a valid header
+       - an open output file
+     */
 
+    quit=0;
     /* first write the header bytes */
     fwrite(numbuf, 1, hdrlen, outf);
 
@@ -157,7 +177,7 @@ int main(int argc, char *argv[])
     /* read/write BLOCKSZ chunks loop */
     while ((!quit) && (nbtoread >= BLOCKSZ)){
 #ifdef DEBUG
-      fprintf(stderr,"DBG TODO block read nbtoread %ld\n",nbtoread);
+      fprintf(stderr,"DBG block read nbtoread %ld\n",nbtoread);
 #endif	/* DEBUG */
 
       nbr = fread(blkbuf, BLOCKSZ, 1, stdin);
@@ -204,6 +224,9 @@ int main(int argc, char *argv[])
     if (opt_chunking == 1){
       if (nbrchunks >= opt_chunking_high) {
         do_emit = 1;
+#ifdef DEBUG
+      fprintf(stderr,"DBG begin a new chunk %d\n",chunknr);
+#endif	/* DEBUG */
       }
       if (quit) {
         do_emit = 1;
@@ -215,12 +238,20 @@ int main(int argc, char *argv[])
     if (do_emit){
       fflush(outf);
       fclose(outf);
-      sprintf(outfname,"real.TODO.spit.name.%05d.%ld",chunknr,nbrchunks);
+      strcpy(nowstr, now());
+      sprintf(outfname,"echunk.%05d.%s", chunknr, nowstr);
       rename(DEFAULT_OUTFNAME, outfname);
   
       /* begin next record */
       chunknr++;
       nbrchunks = 0;
+
+      /* open next dump file */
+      outf = fopen(DEFAULT_OUTFNAME, "w");
+      if (outf==NULL){
+        fprintf(stderr,"spit_mitm_chunks(): ERROR writing %s: %s\n", DEFAULT_OUTFNAME, strerror(errno));
+        exit(1);
+      }
     }
 
     memset(&hdr, 0x00, sizeof(hdr));
@@ -243,6 +274,9 @@ int main(int argc, char *argv[])
 
   } while(!quit); /* MAIN LOOP */
 
+  if (outf) {
+    fclose(outf);
+  }
   fprintf(stderr,"summary: wrote %d chunks last chunk %ld bytes (expected)\n", chunknr, nbrchunks);
 
   exit(0);
