@@ -165,9 +165,9 @@ int main(int argc, char *argv[])
 
   strcpy(nowstr,now());
   if(opt_chunking==0){
-    fprintf(stderr,"%s Started split_mitm_chunks, mode = single, output in files e.xyz\n", nowstr);
+    fprintf(stderr,"%s Started spit_mitm_chunks, mode = single, output in files e.xyz\n", nowstr);
   } else {
-    fprintf(stderr,"%s Started split_mitm_chunks, mode = chunks, output in files echunk.xyz\n", nowstr);
+    fprintf(stderr,"%s Started spit_mitm_chunks, mode = chunks, output in files echunk.xyz\n", nowstr);
   }
 
   nbrchunks = 0;
