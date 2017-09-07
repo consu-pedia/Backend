@@ -4,13 +4,21 @@
 #include <stdint.h>
 #include <errno.h>
 #include <time.h>
+#include <getopt.h> /* for getopt_long() */
 
 #define BLOCKSZ		4096
 #undef DEBUG
 
 static int opt_chunking = 1;
+static int opt_usagequit = 0;
 static size_t opt_chunking_high = 131072;
 
+struct option options[] = {
+  { "help", 0, &opt_usagequit, 1 }
+  ,{ "single", 0, &opt_chunking, 0x01 /* not really used. could make it a bitfield. */ }
+  ,{ "chunks", 0, &opt_chunking, 0x01 }
+  , { NULL, 0, NULL, 0 }
+};
 
 typedef struct hdr_proto {
 #define MAXHDRLEN	256
@@ -90,6 +98,43 @@ static char *now(void)
   return(nowstr);
 }
 
+
+/* see man 3 getopt_long */
+static int read_options(int argc, char *argv[])
+{
+  int longindex=0;
+  int optc=0;
+
+  while(optc!= -1){
+  optc = getopt_long(argc, argv, "hsc", &options[0], &longindex);
+  switch(optc) {
+    case 'h':
+      opt_usagequit=1;
+      break;
+
+    case 's':
+      opt_chunking = 0;
+      break;
+    case 'c':
+      opt_chunking = 1;
+      break;
+
+    case '?':
+      opt_usagequit=1;
+      break;
+
+    case 0:
+      break;
+
+    case -1: /* the end */
+      break;
+  }
+  }
+
+  if (opt_usagequit) return(1);
+  return(0);
+}
+
 int main(int argc, char *argv[])
 {
   hdr_t hdr;
@@ -112,6 +157,18 @@ int main(int argc, char *argv[])
   memset(&hdr, 0x00, sizeof(hdr));
   memset(&numbuf[0], 0x00, sizeof(numbuf));
 
+  if (read_options(argc, argv) != 0){
+    fprintf(stderr,"Usage: spit_mitm_chunks ([-c|--chunks]|[-s|--single]) [-h|--help]\n");
+    fprintf(stderr,"reads from stdin and outputs files echunk.xyz (chunks option, default) or e.xyz (for single fragments option)\n");
+    exit(0);
+  }
+
+  strcpy(nowstr,now());
+  if(opt_chunking==0){
+    fprintf(stderr,"%s Started split_mitm_chunks, mode = single, output in files e.xyz\n", nowstr);
+  } else {
+    fprintf(stderr,"%s Started split_mitm_chunks, mode = chunks, output in files echunk.xyz\n", nowstr);
+  }
 
   nbrchunks = 0;
 
@@ -239,7 +296,11 @@ int main(int argc, char *argv[])
       fflush(outf);
       fclose(outf);
       strcpy(nowstr, now());
-      sprintf(outfname,"echunk.%05d.%s", chunknr, nowstr);
+      if (opt_chunking){
+        sprintf(outfname,"echunk.%05d.%s", chunknr, nowstr);
+      } else {
+        sprintf(outfname,"e.%05d.%s", chunknr, nowstr);
+      }
       rename(DEFAULT_OUTFNAME, outfname);
   
       /* begin next record */
@@ -276,6 +337,9 @@ int main(int argc, char *argv[])
 
   if (outf) {
     fclose(outf);
+    if (nbrchunks == 0){
+       remove(DEFAULT_OUTFNAME);
+    }
   }
   fprintf(stderr,"summary: wrote %d chunks last chunk %ld bytes (expected)\n", chunknr, nbrchunks);
 
