@@ -81,13 +81,17 @@ static int init_mongo_db(mongo_sync_connection *conn , const char *newdb, const 
   gboolean res = TRUE;
   bson *seeifexists = NULL;
 
-  fprintf(stderr,"\n*** INVOKING init_mongo_db(new db %s , new coll %s ) ***\n", newdb, newcoll);
-
   seeifexists = mongo_sync_cmd_exists(conn, newdb, newcoll);
-  if (seeifexists == NULL){
-    fprintf(stderr,"DB %s / coll %s doesn't exist, creating it!\n", newdb, newcoll);
+  if (seeifexists != NULL){
+//    fprintf(stderr,"DB %s / coll %s exists.\n", newdb, newcoll);
+    bson_free(seeifexists);
+    return(res);
+  }
 
-    flags = MONGO_COLLECTION_DEFAULTS;
+  fprintf(stderr,"\n*** INVOKING init_mongo_db(new db %s , new coll %s ) ***\n", newdb, newcoll);
+  fprintf(stderr,"DB %s / coll %s doesn't exist, creating it!\n", newdb, newcoll);
+
+  flags = MONGO_COLLECTION_DEFAULTS;
 /* from docu:
  * This command can be used to explicitly create a MongoDB collection,
  * with various parameters pre-set.
@@ -107,21 +111,18 @@ static int init_mongo_db(mongo_sync_connection *conn , const char *newdb, const 
  * MONGO_COLLECTION_CAPPED_MAX is specified, and must follow @a size.
  *
  */
-    db_g = g_string_new(newdb);
-    coll_g = g_string_new(newcoll);
+  db_g = g_string_new(newdb);
+  coll_g = g_string_new(newcoll);
 
-    res = mongo_sync_cmd_create(conn, newdb, newcoll, flags);
-    fprintf(stderr,"DBG res = %d\n", res);
+  res = mongo_sync_cmd_create(conn, newdb, newcoll, flags);
+  fprintf(stderr,"DBG res = %d\n", res);
 
-    /* WARNING: looking in /usr/include/glib-2.0/glib/gstring.h, it is
-       not very bloody clear what the meaning of the g_string_free()'s 
-       second parameter, gboolean free_segment, actually is. */
-    g_string_free(db_g, TRUE);
-    g_string_free(coll_g, TRUE);
-  } else {
-    fprintf(stderr,"DB %s / coll %s exists.\n", newdb, newcoll);
-    bson_free(seeifexists);
-  }
+  /* WARNING: looking in /usr/include/glib-2.0/glib/gstring.h, it is
+     not very bloody clear what the meaning of the g_string_free()'s 
+     second parameter, gboolean free_segment, actually is. */
+  g_string_free(db_g, TRUE);
+  g_string_free(coll_g, TRUE);
+
   fprintf(stderr,"\n*** FINISHED init_mongo_db() ***\n");
   return(res);
 }
@@ -168,22 +169,20 @@ static uint8_t *readfile(const char *fname, size_t *return_len)
 
 
 /* see /usr/include/mongo-client/bson.h for BSON AIP */
-bson *make_document(uint8_t *filebuf, size_t filelen)
+bson *make_document(uint8_t *filebuf, size_t filelen, mongo_sync_connection *conn)
 {
   bson *newfbson = NULL;
-  char lenstr[16];
   int docstatus = 0x00;
   int ok;
   bson_binary_subtype subtype;
   gint32 filelen32;
+  gchar *error = NULL;
 
   if (filelen >= (2LL << 32L)){
     fprintf(stderr,"INTERNAL ERROR document too long (%ld bytes), fix make_document()\n", filelen);
     return(NULL);
   }
   filelen32 = filelen;
-
-  sprintf(lenstr,"%ld", filelen);
 
   /* So I downloaded the actual Devuan libbson source code.
      and in src/bson/bson.c and bson-types.h it said:
@@ -202,19 +201,23 @@ bson *make_document(uint8_t *filebuf, size_t filelen)
 
   newfbson = bson_build(
                BSON_TYPE_INT32, "status", docstatus,
-               BSON_TYPE_INT32, "gtin_id", "42",
-               BSON_TYPE_STRING, "source", "coop",
-               BSON_TYPE_STRING, "timestamp", "1900-01-01T00:00",
-               BSON_TYPE_INT32, "length", lenstr,
-               BSON_TYPE_NONE
-               );
+               BSON_TYPE_INT32, "gtin_id", 42,
+               BSON_TYPE_STRING, "source", "coop", -1,
+               BSON_TYPE_STRING, "timestamp", "1900-01-01T00:00", -1,
+               BSON_TYPE_INT32, "length", filelen,
+               BSON_TYPE_NONE );
 
-  fprintf(stderr,"TODO make_document insert blob\n");
+  if (newfbson == NULL){
+    mongo_sync_cmd_get_last_error (conn, dbname, &error);
+    fprintf(stderr,"make_document() ERROR: %s : %s\n", error, strerror(errno));
+    return(NULL);
+  }
+
   /* BSON_TYPE_DOCUMENT? NO; that expects a BSON array as argument.
      BSON_TYPE_BINARY? */
   /* use bson_append_xyz() */
   ok = bson_append_binary(newfbson, "content", subtype, filebuf, filelen32);
-  if (ok!=0){
+  if (ok==FALSE){
     fprintf(stderr,"ERROR bson_append_binary() FAILED\n");
     return(newfbson);
   }
@@ -231,6 +234,8 @@ int main(int argc, char *argv[])
   uint8_t *filebuf = NULL;
   size_t filelen = 0;
   bson *fbson = NULL;
+  gchar *error = NULL;
+  int ok;
 
   if (argc!=3) {
     fprintf(stderr,"Usage: plonk_in_mongodb <connection> <record file name>\n");
@@ -261,9 +266,19 @@ int main(int argc, char *argv[])
     /* plonk it in! */
     fprintf(stderr,"DBG plonk in %ld bytes %s\n", filelen, fname);
 
-    fbson = make_document(filebuf, filelen);
+    fbson = make_document(filebuf, filelen, conn);
 
-    bson_free(fbson);
+    if (fbson == NULL){
+      fprintf(stderr,"ERROR creating document of %s\n", fname);
+    } else {
+      ok = mongo_sync_cmd_insert(conn, fname, fbson, NULL);
+      if (ok!=TRUE){
+        mongo_sync_cmd_get_last_error (conn, dbname, &error);
+        fprintf(stderr,"ERROR storing %s: %s , %s\n", fname, error, strerror(errno));
+      }
+
+      bson_free(fbson);
+    } /* endif fbson ok */
   }
 
   free(filebuf);
