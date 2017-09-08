@@ -7,11 +7,19 @@
 #include <sys/stat.h>
 #include <mongo.h>
 #include <glib.h>
+#include <glib/gstring.h>
 #define MONGO_PORT	27017 /* seems to be the default port */
+
+#define INIT_MONGO_DB	1
+
+static char dbname[256];
+static char collname[256];
 
 static mongo_sync_connection *mongoconnect1(const char *addr, const char *db, const char *coll);
 static mongo_sync_connection *mongoconnect(const char *addr_db_coll);
 
+
+/* side-effect: sets dbname, collname */
 static mongo_sync_connection *mongoconnect(const char *addr_db_coll)
 {
   char *addr=NULL, *db=NULL, *coll=NULL;
@@ -30,6 +38,11 @@ static mongo_sync_connection *mongoconnect(const char *addr_db_coll)
   w = strtok(NULL, ":");
   if (w==NULL) return(NULL);
   coll = w;
+
+  dbname[255]='\0';
+  strncpy(dbname, db, 255);
+  collname[255]='\0';
+  strncpy(collname, coll, 255);
  
   return(mongoconnect1(addr, db, coll));
 }
@@ -51,6 +64,64 @@ static mongo_sync_connection *mongoconnect1(const char *addr, const char *db, co
   return(conn);
 }
 
+
+/* this function should only be run once; it creates the db and
+   collection.
+
+   documentation: /usr/include/mongo-client/mongo-sync.h, look for
+   mongo_sync_cmd_create()
+ */
+static int init_mongo_db(mongo_sync_connection *conn , const char *newdb, const char *newcoll)
+{
+  gint flags = 0;
+  GString *db_g =NULL, *coll_g =NULL;
+  gboolean res = TRUE;
+  bson *seeifexists = NULL;
+
+  fprintf(stderr,"\n*** INVOKING init_mongo_db(new db %s , new coll %s ) ***\n", newdb, newcoll);
+
+  seeifexists = mongo_sync_cmd_exists(conn, newdb, newcoll);
+  if (seeifexists == NULL){
+    fprintf(stderr,"DB %s / coll %s doesn't exist, creating it!\n", newdb, newcoll);
+
+    flags = MONGO_COLLECTION_DEFAULTS;
+/* from docu:
+ * This command can be used to explicitly create a MongoDB collection,
+ * with various parameters pre-set.
+ *
+ * @param conn is the connection to work with.
+ * @param db is the name of the database.
+ * @param coll is the name of the collection to create.
+ * @param flags is a collection of flags for the collection.  Any
+ * combination of MONGO_COLLECTION_DEFAULTS, MONGO_COLLECTION_CAPPED,
+ * MONGO_COLLECTION_CAPPED_MAX, MONGO_COLLECTION_SIZED and
+ * MONGO_COLLECTION_AUTO_INDEX_ID is acceptable.
+ *
+ * @tparam size @b MUST be a 64-bit integer, if
+ * MONGO_COLLECTION_CAPPED or MONGO_COLLECTION_SIZED is specified, and
+ * it must follow the @a flags parameter.
+ * @tparam max @b MUST be a 64-bit integer, if
+ * MONGO_COLLECTION_CAPPED_MAX is specified, and must follow @a size.
+ *
+ */
+    db_g = g_string_new(newdb);
+    coll_g = g_string_new(newcoll);
+
+    res = mongo_sync_cmd_create(conn, newdb, newcoll, flags);
+    fprintf(stderr,"DBG res = %d\n", res);
+
+    /* WARNING: looking in /usr/include/glib-2.0/glib/gstring.h, it is
+       not very bloody clear what the meaning of the g_string_free()'s 
+       second parameter, gboolean free_segment, actually is. */
+    g_string_free(db_g, TRUE);
+    g_string_free(coll_g, TRUE);
+  } else {
+    fprintf(stderr,"DB %s / coll %s exists.\n", newdb, newcoll);
+    /* TODO how does one deallocate a bison? */
+  }
+  fprintf(stderr,"\n*** FINISHED init_mongo_db() ***\n");
+  return(res);
+}
 
 int main(int argc, char *argv[])
 {
@@ -74,6 +145,10 @@ int main(int argc, char *argv[])
   }
 
   fprintf(stderr,"connected to %s !!\n", connstring);
+
+#ifdef INIT_MONGO_DB
+  init_mongo_db(conn, dbname, collname);
+#endif	/* INIT_MONGO_DB */
  
   mongo_sync_disconnect(conn);
 

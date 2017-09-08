@@ -1,0 +1,7 @@
+.gitignore
+parse_mitmdump
+parse_mitmdump.o
+plonk_in_mongodb
+plonk_in_mongodb.o
+spit_mitm_chunks
+spit_mitm_chunks.o

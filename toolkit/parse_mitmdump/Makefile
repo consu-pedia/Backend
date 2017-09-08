@@ -1,6 +1,10 @@
 CPPFLAGS=`pkg-config --cflags libmongo-client`
 CC=gcc -g -Wall
-LDFLAGS=`pkg-config --libs libmongo-client`
+
+# OMG SERIOUSLY?!? WTF BBQ
+# LDDEPS=`pkg-config --print-requires --print-requires-private libmongo-client`
+LDDEPS=glib-2.0
+LDFLAGS=`pkg-config --libs libmongo-client $(LDDEPS)`
 
 all: parse_mitmdump spit_mitm_chunks plonk_in_mongodb
 
@@ -11,6 +15,8 @@ spit_mitm_chunks: spit_mitm_chunks.o
 	$(CC) -o spit_mitm_chunks spit_mitm_chunks.o
 
 plonk_in_mongodb: plonk_in_mongodb.o
+	echo "DBG linker deps: "$(LDDEPS)
+	echo "DBG linker: "$(LDFLAGS)
 	$(CC) -o plonk_in_mongodb plonk_in_mongodb.o $(LDFLAGS)
 
 clean:
