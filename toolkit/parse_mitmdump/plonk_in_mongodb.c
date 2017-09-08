@@ -3,11 +3,14 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#include <stdint.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <mongo.h>
 #include <glib.h>
 #include <glib/gstring.h>
+#include "mongodatastats.h"
+
 #define MONGO_PORT	27017 /* seems to be the default port */
 
 #define INIT_MONGO_DB	1
@@ -117,10 +120,107 @@ static int init_mongo_db(mongo_sync_connection *conn , const char *newdb, const 
     g_string_free(coll_g, TRUE);
   } else {
     fprintf(stderr,"DB %s / coll %s exists.\n", newdb, newcoll);
-    /* TODO how does one deallocate a bison? */
+    bson_free(seeifexists);
   }
   fprintf(stderr,"\n*** FINISHED init_mongo_db() ***\n");
   return(res);
+}
+
+static uint8_t *readfile(const char *fname, size_t *return_len)
+{
+  uint8_t *buf = NULL;
+  FILE *f = NULL;
+  size_t len;
+  int ok;
+
+  f=fopen(fname, "r");
+  if (f==NULL) {
+    fclose(f);
+    return(NULL);
+  }
+
+  ok=fseek(f, 0L, SEEK_END);
+  if(ok!=0) {
+    fclose(f);
+    return(NULL);
+  }
+
+  len = ftell(f);
+  *return_len = len;
+
+  rewind(f);
+
+  buf = (uint8_t *) malloc(len);
+  if (buf==NULL){
+    fclose(f);
+    return(NULL);
+  }
+  ok=fread(buf, 1, len, f);
+  if (ok!=len){
+    fprintf(stderr,"fread() ok=%d len=%ld\n",ok,len);
+    fclose(f);
+    return(NULL);
+  }
+
+  fclose(f);
+  return(buf);
+}
+
+
+/* see /usr/include/mongo-client/bson.h for BSON AIP */
+bson *make_document(uint8_t *filebuf, size_t filelen)
+{
+  bson *newfbson = NULL;
+  char lenstr[16];
+  int docstatus = 0x00;
+  int ok;
+  bson_binary_subtype subtype;
+  gint32 filelen32;
+
+  if (filelen >= (2LL << 32L)){
+    fprintf(stderr,"INTERNAL ERROR document too long (%ld bytes), fix make_document()\n", filelen);
+    return(NULL);
+  }
+  filelen32 = filelen;
+
+  sprintf(lenstr,"%ld", filelen);
+
+  /* So I downloaded the actual Devuan libbson source code.
+     and in src/bson/bson.c and bson-types.h it said:
+     see http://bsonspec.org for more information.
+     bson_binary_subtype is in any case an enum
+     it's the "Generic binary subtype" that should be default
+     (hex 0x00), encoded in hdr file as BSON_SUBTYPE_BINARY
+
+     N.B. in mongo-client/bson.h it has a different name !
+   */
+  subtype = BSON_BINARY_SUBTYPE_GENERIC;
+  /* N.B. DO NOT USE BSON_BINARY_SUBTYPE_BINARY, that's obsoleted */
+
+  /* default: unprocessed, status 0x00 */
+  docstatus = MONGODATASTATUS_NEW;
+
+  newfbson = bson_build(
+               BSON_TYPE_INT32, "status", docstatus,
+               BSON_TYPE_INT32, "gtin_id", "42",
+               BSON_TYPE_STRING, "source", "coop",
+               BSON_TYPE_STRING, "timestamp", "1900-01-01T00:00",
+               BSON_TYPE_INT32, "length", lenstr,
+               BSON_TYPE_NONE
+               );
+
+  fprintf(stderr,"TODO make_document insert blob\n");
+  /* BSON_TYPE_DOCUMENT? NO; that expects a BSON array as argument.
+     BSON_TYPE_BINARY? */
+  /* use bson_append_xyz() */
+  ok = bson_append_binary(newfbson, "content", subtype, filebuf, filelen32);
+  if (ok!=0){
+    fprintf(stderr,"ERROR bson_append_binary() FAILED\n");
+    return(newfbson);
+  }
+
+  bson_finish (newfbson);
+  return(newfbson);
 }
 
 int main(int argc, char *argv[])
@@ -128,6 +228,9 @@ int main(int argc, char *argv[])
   char connstring[256];
   char fname[256];
   mongo_sync_connection *conn = NULL;
+  uint8_t *filebuf = NULL;
+  size_t filelen = 0;
+  bson *fbson = NULL;
 
   if (argc!=3) {
     fprintf(stderr,"Usage: plonk_in_mongodb <connection> <record file name>\n");
@@ -149,6 +252,21 @@ int main(int argc, char *argv[])
 #ifdef INIT_MONGO_DB
   init_mongo_db(conn, dbname, collname);
 #endif	/* INIT_MONGO_DB */
+
+  /* ASSUMPTION: that the file containing the JSON record is not very large */
+  filebuf = readfile(fname, &filelen);
+  if (filebuf==NULL){
+    fprintf(stderr,"ERROR reading %s: %s\n",fname, strerror(errno));
+  } else {
+    /* plonk it in! */
+    fprintf(stderr,"DBG plonk in %ld bytes %s\n", filelen, fname);
+
+    fbson = make_document(filebuf, filelen);
+
+    bson_free(fbson);
+  }
+
+  free(filebuf);
  
   mongo_sync_disconnect(conn);
 
