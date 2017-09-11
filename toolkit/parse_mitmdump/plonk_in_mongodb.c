@@ -17,6 +17,7 @@
 
 static char dbname[256];
 static char collname[256];
+static char mongonamespace[513];
 
 static mongo_sync_connection *mongoconnect1(const char *addr, const char *db, const char *coll);
 static mongo_sync_connection *mongoconnect(const char *addr_db_coll);
@@ -46,6 +47,8 @@ static mongo_sync_connection *mongoconnect(const char *addr_db_coll)
   strncpy(dbname, db, 255);
   collname[255]='\0';
   strncpy(collname, coll, 255);
+
+  sprintf(mongonamespace, "%s.%s", dbname, collname);
  
   return(mongoconnect1(addr, db, coll));
 }
@@ -236,14 +239,18 @@ int main(int argc, char *argv[])
   bson *fbson = NULL;
   gchar *error = NULL;
   int ok;
+  int argi;
+  int nfwant, nfdone;
 
-  if (argc!=3) {
+  if (argc<3) {
     fprintf(stderr,"Usage: plonk_in_mongodb <connection> <record file name>\n");
     exit(1);
   }
 
   strcpy(connstring, argv[1]);
-  strcpy(fname, argv[2]);
+  argi = 2;
+  nfwant = 0;
+  nfdone = 0;
 
   conn = mongoconnect(connstring);
 
@@ -258,11 +265,18 @@ int main(int argc, char *argv[])
   init_mongo_db(conn, dbname, collname);
 #endif	/* INIT_MONGO_DB */
 
-  /* ASSUMPTION: that the file containing the JSON record is not very large */
-  filebuf = readfile(fname, &filelen);
-  if (filebuf==NULL){
-    fprintf(stderr,"ERROR reading %s: %s\n",fname, strerror(errno));
-  } else {
+  do {
+    strcpy(fname, argv[argi]);
+    argi++;
+    nfwant++;
+
+    /* ASSUMPTION: that the file containing the JSON record is not very large */
+    filebuf = readfile(fname, &filelen);
+    if (filebuf==NULL){
+      fprintf(stderr,"ERROR reading %s: %s\n",fname, strerror(errno));
+      continue;
+    }
+
     /* plonk it in! */
     fprintf(stderr,"DBG plonk in %ld bytes %s\n", filelen, fname);
 
@@ -270,18 +284,38 @@ int main(int argc, char *argv[])
 
     if (fbson == NULL){
       fprintf(stderr,"ERROR creating document of %s\n", fname);
-    } else {
-      ok = mongo_sync_cmd_insert(conn, fname, fbson, NULL);
-      if (ok!=TRUE){
-        mongo_sync_cmd_get_last_error (conn, dbname, &error);
-        fprintf(stderr,"ERROR storing %s: %s , %s\n", fname, error, strerror(errno));
-      }
+      free(filebuf);
+      continue;
+    }
 
-      bson_free(fbson);
-    } /* endif fbson ok */
-  }
+    // works, but prefer the other syntax ok = mongo_sync_cmd_insert(conn, fname, fbson, NULL);
+    const bson *herd[1];
+    int nb=0;
+    herd[nb++] = fbson;
 
-  free(filebuf);
+
+    /* IMPORTANT: second arg. of mongo_sync_cmd_insert_n() is namespace ns,
+       this is NOT properly explained there in mongo-client/mongo-sync.h,
+       instead look at l. 303 docu of mongo_sync_cmd_query():
+       "
+       * @param ns is the namespace, the database and collection name
+       * concatenated, and separated with a single dot.
+       "
+     */
+
+    ok = mongo_sync_cmd_insert_n(conn, mongonamespace, nb, herd);
+    if (ok!=TRUE){
+      mongo_sync_cmd_get_last_error (conn, dbname, &error);
+      fprintf(stderr,"ERROR storing %s: %s , %s\n", fname, error, strerror(errno));
+    }
+
+    nfdone++;
+
+    bson_free(fbson);
+    free(filebuf);
+  } while(argi < argc);
+
+  fprintf(stderr,"INFO plonk_in_mongodb: processed %d / %d files.\n", nfdone, nfwant);
  
   mongo_sync_disconnect(conn);
 

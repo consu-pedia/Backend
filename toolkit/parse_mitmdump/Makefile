@@ -17,6 +17,9 @@ spit_mitm_chunks: spit_mitm_chunks.o
 plonk_in_mongodb: plonk_in_mongodb.o
 	$(CC) -o plonk_in_mongodb plonk_in_mongodb.o $(LDFLAGS)
 
+testplonk: plonk_in_mongodb
+	./plonk_in_mongodb localhost:test:coop gamleole.coop.sample.json
+
 clean:
 	rm -f parse_mitmdump parse_mitmdump.o
 	rm -f rawres.0* req.0* res.0*
