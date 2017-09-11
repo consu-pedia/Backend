@@ -49,6 +49,7 @@ static mongo_sync_connection *mongoconnect(const char *addr_db_coll)
   strncpy(collname, coll, 255);
 
   sprintf(mongonamespace, "%s.%s", dbname, collname);
+  fprintf(stderr,"DBG set mongonamespace to: %s\n", mongonamespace);
  
   return(mongoconnect1(addr, db, coll));
 }
@@ -130,17 +131,28 @@ static int init_mongo_db(mongo_sync_connection *conn , const char *newdb, const 
   return(res);
 }
 
-static uint8_t *readfile(const char *fname, size_t *return_len)
+static uint8_t *readfile(const char *fname, size_t *return_len, time_t *return_ts)
 {
   uint8_t *buf = NULL;
   FILE *f = NULL;
   size_t len;
   int ok;
+  struct stat statbuf;
 
   f=fopen(fname, "r");
   if (f==NULL) {
     fclose(f);
     return(NULL);
+  }
+
+  *return_ts = (time_t) 0;
+  struct timespec tsp;
+  memset(&statbuf,0x00,sizeof(struct stat));
+  ok=fstat(fileno(f), &statbuf);
+  if (ok==0){
+    memcpy(&tsp , &statbuf.st_mtime, sizeof(struct timespec));
+    /* don't care about the fraction-of-seconds bit, tv_nsec */
+    *return_ts = tsp.tv_sec;
   }
 
   ok=fseek(f, 0L, SEEK_END);
@@ -172,7 +184,7 @@ static uint8_t *readfile(const char *fname, size_t *return_len)
 
 
 /* see /usr/include/mongo-client/bson.h for BSON AIP */
-bson *make_document(uint8_t *filebuf, size_t filelen, mongo_sync_connection *conn)
+bson *make_document(uint8_t *filebuf, size_t filelen, const time_t ts, mongo_sync_connection *conn)
 {
   bson *newfbson = NULL;
   int docstatus = 0x00;
@@ -180,12 +192,15 @@ bson *make_document(uint8_t *filebuf, size_t filelen, mongo_sync_connection *con
   bson_binary_subtype subtype;
   gint32 filelen32;
   gchar *error = NULL;
+  char tsstring[64];
 
   if (filelen >= (2LL << 32L)){
     fprintf(stderr,"INTERNAL ERROR document too long (%ld bytes), fix make_document()\n", filelen);
     return(NULL);
   }
   filelen32 = filelen;
+
+  strftime(tsstring, 64, "%Y-%m-%dT%H:%M:%S", gmtime(&ts));
 
   /* So I downloaded the actual Devuan libbson source code.
      and in src/bson/bson.c and bson-types.h it said:
@@ -206,7 +221,7 @@ bson *make_document(uint8_t *filebuf, size_t filelen, mongo_sync_connection *con
                BSON_TYPE_INT32, "status", docstatus,
                BSON_TYPE_INT32, "gtin_id", 42,
                BSON_TYPE_STRING, "source", "coop", -1,
-               BSON_TYPE_STRING, "timestamp", "1900-01-01T00:00", -1,
+               BSON_TYPE_STRING, "timestamp", tsstring, -1,
                BSON_TYPE_INT32, "length", filelen,
                BSON_TYPE_NONE );
 
@@ -271,7 +286,8 @@ int main(int argc, char *argv[])
     nfwant++;
 
     /* ASSUMPTION: that the file containing the JSON record is not very large */
-    filebuf = readfile(fname, &filelen);
+    time_t ts = (time_t) 0;
+    filebuf = readfile(fname, &filelen, &ts);
     if (filebuf==NULL){
       fprintf(stderr,"ERROR reading %s: %s\n",fname, strerror(errno));
       continue;
@@ -280,7 +296,7 @@ int main(int argc, char *argv[])
     /* plonk it in! */
     fprintf(stderr,"DBG plonk in %ld bytes %s\n", filelen, fname);
 
-    fbson = make_document(filebuf, filelen, conn);
+    fbson = make_document(filebuf, filelen, ts, conn);
 
     if (fbson == NULL){
       fprintf(stderr,"ERROR creating document of %s\n", fname);
