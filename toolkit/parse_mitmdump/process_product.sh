@@ -129,7 +129,7 @@ while [ $state -ne 32 ]; do
        if [ $hasjson -gt 0 ]; then
          curfrag=$fr
          echo "DBG state $state found json in $curfrag"
-         nextstate=$(( $nextstate + 8 ))
+         nextstate=$(( $nextstate | 8 ))
          zcat sub/$fr/rawres.* > tmp.json.maybe
          # aha but is it the correct JSON?
          correctproduct=$( grep -c $prodname tmp.json.maybe )
@@ -180,7 +180,7 @@ while [ $state -ne 32 ]; do
        if [ $hasjson -gt 0 ]; then
          curfrag=$fr
          echo "DBG state $state found json in $curfrag"
-         nextstate=$(( $nextstate + 8 ))
+         nextstate=$(( $nextstate | 8 ))
          zcat sub/$fr/rawres.* > tmp.json.maybe
          # aha but is it the correct JSON?
          correctproduct=$( grep -c $prodname tmp.json.maybe )
@@ -203,13 +203,72 @@ while [ $state -ne 32 ]; do
     ;; # end state 7
 
 
+"11") # loop from curfrag to rest of lookin, find image
+     # side-effect: set nexthint if we encounter another HTML
+
+      echo "DBG state $state HTML and JSON found in $curfrag, now look for image"
+
+     # modify lookin to start from curfrag
+     lookin=$( echo "$lookin" | sed -n '/'"$curfrag"'/,$p' | tail -n +2 )
+     if [ "$lookin" = "" ]; then
+       echo "DBG state $state no more flows"
+       nextstate=43
+       break
+     fi
+     for fr in $lookin; do
+       req=$( cat sub/$fr/req.* 2>/dev/null )
+       if [ "$req" = "" ]; then continue; fi
+
+       #DBG# echo "DBG fr $fr req = $req"
+
+       ishtml=$( echo "$req" | tr -d '\r' | grep -c '^GET.*/handla-online/varor/.' )
+       if [ $ishtml -gt 0 ]; then
+         nexthint=$fr
+         continue
+       fi
+
+       hasimage=$( echo "$req" | grep -c '^GET.*'"$url" )
+       if [ $hasimage -gt 0 ]; then
+         curfrag=$fr
+         echo "DBG state $state found image in $curfrag, url $url"
+         nextstate=$(( $nextstate | 4 ))
+         cp -p sub/$fr/rawres.* tmp.image
+         break
+       fi
+
+     done # fr lookin loop state 11
+     if [ $hasimage -eq 0 ]; then
+       nextstate=27
+     else
+       nextstate=31
+     fi
+    ;; # end state 11
+
+
 "27") # store HTML and JSON in MongoDB
-    echo "TODO state $state: store HTML and JSON of $prodname in MongoDB"
+    echo "state $state: store HTML and JSON of $prodname in MongoDB document $prodname"
+    mv tmp.json "$prodname"".json"
+    plonk_in_mongodb localhost:coop:json "$prodname"".json"
+    rc=$?
+    mv tmp.html "$prodname"".html"
+    bzip2 -9 "$prodname"".html"
+    plonk_in_mongodb localhost:coop:json "$prodname"".html.bz2"
+    rc=$?
     nextstate=16
     ;; # end state 27
 
 "31") # store HTML, image and JSON in MongoDB
-    echo "TODO state $state: store HTML, image and JSON of $prodname in MongoDB"
+    echo "state $state: store HTML, image and JSON of $prodname in MongoDB document $prodname"
+    mv tmp.json "$prodname"".json"
+    plonk_in_mongodb localhost:coop:json "$prodname"".json"
+    rc=$?
+    mv tmp.jpg "$prodname"".jpg"
+    plonk_in_mongodb localhost:coop:json "$prodname"".jpg"
+    mv tmp.html "$prodname"".html"
+    bzip2 -9 "$prodname"".html"
+    plonk_in_mongodb localhost:coop:json "$prodname"".html.bz2"
+    rc=$?
+    
     nextstate=16
     ;; # end state 31
 
