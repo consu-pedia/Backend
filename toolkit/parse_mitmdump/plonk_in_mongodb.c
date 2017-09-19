@@ -11,6 +11,23 @@
 #include <glib/gstring.h>
 #include "mongodatastats.h"
 
+/* plonk_in_mongodb.c
+   Copyright © Consupedia AB 2017
+   Author: Frits Daalmans <frits@consupedia.com>
+
+   Program to store one document file in a mongodb collection
+   Needs 2 arguments:
+     connection  in format <hostname>":"<db name>":"<collection id>
+     document file needs to be given a special filename:
+     filename must be less than 255 characters, contain a dot ".",
+     part before the dot represents the gtin_id and must contain only
+     characters from the set [v][0-9]
+     For example:
+     plonk_in_mongodb localhost:coop:json v1495591338.json
+     plonk_in_mongodb localhost:coop:image v1495591338.jpg
+     plonk_in_mongodb localhost:coop:html v1495591338.html.bz2
+ */
+
 #define MONGO_PORT	27017 /* seems to be the default port */
 
 #define INIT_MONGO_DB	1
@@ -141,7 +158,6 @@ static uint8_t *readfile(const char *fname, size_t *return_len, time_t *return_t
 
   f=fopen(fname, "r");
   if (f==NULL) {
-    fclose(f);
     return(NULL);
   }
 
@@ -153,6 +169,10 @@ static uint8_t *readfile(const char *fname, size_t *return_len, time_t *return_t
     memcpy(&tsp , &statbuf.st_mtime, sizeof(struct timespec));
     /* don't care about the fraction-of-seconds bit, tv_nsec */
     *return_ts = tsp.tv_sec;
+  } else {
+    fprintf(stderr,"plonk_in_mongodb ERROR: could not stat %s: %s\n", fname, strerror(errno));
+    fclose(f);
+    return(NULL);
   }
 
   ok=fseek(f, 0L, SEEK_END);
@@ -301,7 +321,7 @@ int main(int argc, char *argv[])
         strncpy(gtin_id, fname, i);
         gtin_id[i] = '\0';
     } else {
-      fprintf(stderr,"DBG i = %d = %ld gtin_id= %s\n", i,i, gtin_id);
+      fprintf(stderr,"plonk_in_mongodb WARNING: could not parse gtin_id from filename %s, set gtin_id = \"%s\"\n", fname, gtin_id);
     }
 
     /* plonk it in! */
