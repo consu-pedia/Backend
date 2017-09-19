@@ -251,6 +251,7 @@ while [ $state -ne 32 ]; do
     plonk_in_mongodb localhost:coop:json "$prodname"".json"
     rc=$?
     mv tmp.html "$prodname"".html"
+    rm -f "$prodname"".html.bz2"
     bzip2 -9 "$prodname"".html"
     plonk_in_mongodb localhost:coop:json "$prodname"".html.bz2"
     rc=$?
@@ -265,6 +266,7 @@ while [ $state -ne 32 ]; do
     mv tmp.jpg "$prodname"".jpg"
     plonk_in_mongodb localhost:coop:json "$prodname"".jpg"
     mv tmp.html "$prodname"".html"
+    rm -f "$prodname"".html.bz2"
     bzip2 -9 "$prodname"".html"
     plonk_in_mongodb localhost:coop:json "$prodname"".html.bz2"
     rc=$?

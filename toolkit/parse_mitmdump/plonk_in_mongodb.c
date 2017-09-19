@@ -239,7 +239,7 @@ bson *make_document(uint8_t *filebuf, const char *gtin_id, size_t filelen, const
 
   newfbson = bson_build(
                BSON_TYPE_INT32, "status", docstatus,
-               BSON_TYPE_INT32, "gtin_id", gtin_id,
+               BSON_TYPE_STRING, "gtin_id", gtin_id, -1,
                BSON_TYPE_STRING, "source", "coop", -1,
                BSON_TYPE_STRING, "timestamp", tsstring, -1,
                BSON_TYPE_INT32, "length", filelen,
