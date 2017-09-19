@@ -184,7 +184,7 @@ static uint8_t *readfile(const char *fname, size_t *return_len, time_t *return_t
 
 
 /* see /usr/include/mongo-client/bson.h for BSON AIP */
-bson *make_document(uint8_t *filebuf, size_t filelen, const time_t ts, mongo_sync_connection *conn)
+bson *make_document(uint8_t *filebuf, const char *gtin_id, size_t filelen, const time_t ts, mongo_sync_connection *conn)
 {
   bson *newfbson = NULL;
   int docstatus = 0x00;
@@ -219,7 +219,7 @@ bson *make_document(uint8_t *filebuf, size_t filelen, const time_t ts, mongo_syn
 
   newfbson = bson_build(
                BSON_TYPE_INT32, "status", docstatus,
-               BSON_TYPE_INT32, "gtin_id", 42,
+               BSON_TYPE_INT32, "gtin_id", gtin_id,
                BSON_TYPE_STRING, "source", "coop", -1,
                BSON_TYPE_STRING, "timestamp", tsstring, -1,
                BSON_TYPE_INT32, "length", filelen,
@@ -248,6 +248,7 @@ int main(int argc, char *argv[])
 {
   char connstring[256];
   char fname[256];
+  char gtin_id[256];
   mongo_sync_connection *conn = NULL;
   uint8_t *filebuf = NULL;
   size_t filelen = 0;
@@ -293,10 +294,20 @@ int main(int argc, char *argv[])
       continue;
     }
 
-    /* plonk it in! */
-    fprintf(stderr,"DBG plonk in %ld bytes %s\n", filelen, fname);
+    /* construct gtin_id from first part of filename */
+    sprintf(gtin_id,"UNDEFINED");
+    int i = strspn(fname, "v0123456789");
+    if (i>1){
+        strncpy(gtin_id, fname, i);
+        gtin_id[i] = '\0';
+    } else {
+      fprintf(stderr,"DBG i = %d = %ld gtin_id= %s\n", i,i, gtin_id);
+    }
 
-    fbson = make_document(filebuf, filelen, ts, conn);
+    /* plonk it in! */
+    fprintf(stderr,"DBG plonk in %ld bytes %s (gtin_id from filename = %s )\n", filelen, fname, gtin_id);
+
+    fbson = make_document(filebuf, gtin_id, filelen, ts, conn);
 
     if (fbson == NULL){
       fprintf(stderr,"ERROR creating document of %s\n", fname);
