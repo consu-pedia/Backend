@@ -48,6 +48,12 @@ void init_whereami(struct whereami_proto *w)
 
 #define ERRORLOG	"errors.log"
 
+#define HTTPSTATUSDUMPNAME	"tmp.http.status.dump"
+FILE *httpstatusdumpfile = NULL;
+#define HTTPERRORWINDOWLEN 10
+static char httperrorwindow[HTTPERRORWINDOWLEN+1];
+static int httperrorcursor=0;
+
 typedef struct lextable_proto {
   int keyidx;
 #define MAXKEYWORDL	20 /* guesstimate */
@@ -60,6 +66,7 @@ void *keyw_generic_kv(FILE *s, const int keyidx, int *return_nextcontext);
 void *keyw_generic_kv_part2(FILE *s, const int keyidx, int *return_nextcontext);
 void *keyw_generic_list_of_kvs(FILE *s, const int keyidx, int *return_nextcontext);
 void *keyw_boring_generic_list_of_kvs(FILE *s, const int keyidx, int *return_nextcontext);
+void *keyw_status_code(FILE *s, const int keyidx, int *return_nextcontext);
 void *keyw_response(FILE *s, const int keyidx, int *return_nextcontext);
 void *keyw_request(FILE *s, const int keyidx, int *return_nextcontext);
 void *keyw_content(FILE *s, const int keyidx, int *return_nextcontext);
@@ -111,7 +118,7 @@ lextable_t lextable[] = {
   , { KEYW_TIMESTAMP_END, "timestamp_end", keyw_generic_kv }
 /* status_code occurs in CONTEXT_RESPONSE but is not the last field */
 #define KEYW_STATUS_CODE	14
-  , { KEYW_STATUS_CODE, "status_code", keyw_generic_kv }
+  , { KEYW_STATUS_CODE, "status_code", keyw_status_code }
 
 /* http_version occurs in CONTEXT_RESPONSE and is the last field */
 #define KEYW_HTTP_VERSION	15
@@ -205,6 +212,17 @@ void init_various(void)
 {
   int v;
   for(v=0;v<NKEYW;v++) values[v]=NULL;
+
+  httpstatusdumpfile = fopen(HTTPSTATUSDUMPNAME	, "a");
+  if (httpstatusdumpfile == NULL){
+    fprintf(stderr,"ERROR appending to %s (ignored)\n", HTTPSTATUSDUMPNAME);
+    httpstatusdumpfile = NULL;
+  } else {
+    fprintf(httpstatusdumpfile, "200 inittial\n");
+  }
+
+  httperrorcursor = 0;
+  for(v=0;v<HTTPERRORWINDOWLEN;v++) { httperrorwindow[v] = '2'; }
 }
 
 void exit_various(void)
@@ -1347,6 +1365,111 @@ void *keyw_boring_generic_list_of_kvs(FILE *s, const int keyidx, int *return_nex
 {
   return(keyw_generic_list_of_kvs_1(s, keyidx, return_nextcontext, 0 /* do_analyse_list */));
 }
+
+/* NB this function can make the program exit if more than HTTPERRORWINDOW errors */
+int analyse_httperrorwindow(const char *newstatus) {
+  char statusletter = newstatus[0];
+  int pos = httperrorcursor, workpos, noerrorslot = 0;
+
+  switch(statusletter){
+  
+    default: /* huh?? */
+      fprintf(httpstatusdumpfile, "999 UNDEFINED letter 0x%02x %c for %s\n", statusletter, statusletter, newstatus);
+      httperrorwindow[pos++] = statusletter;
+      if (pos>=HTTPERRORWINDOWLEN){
+        /* wraparound */
+        pos = 0;
+      }
+    break;
+
+    case '2': /* OK */
+    case '3': /* Redirect */
+      httperrorwindow[pos++] = statusletter;
+      if (pos>=HTTPERRORWINDOWLEN){
+        /* wraparound */
+        pos = 0;
+      }
+    break;
+
+    case '4': /* client access error */
+    case '5': /* server error */
+      /* normal processing would be: drop the last from the FIFO queue,
+         insert this one as "most recent" 
+         BUT I want errors to count much more */
+//       httperrorwindow[pos++] = statusletter;
+//       if (pos>=HTTPERRORWINDOWLEN){
+//         /* wraparound */
+//         pos = 0;
+//       }
+
+         noerrorslot = pos;
+         /* treat the errorwindow now not as a ringbuffer but as 2 stretches
+            before and after current cursor */
+         for(workpos=pos-1;workpos >= 0; workpos--) {
+           if ((httperrorwindow[workpos] == '2') || (httperrorwindow[workpos] == '3')) {
+             /* found an empty slot */
+             fprintf(stderr,"DBG slot # %d for error %c %s\n", workpos, statusletter, newstatus);
+             noerrorslot = workpos;
+             httperrorwindow[noerrorslot] = statusletter;
+             /* do NOT advance the cursor !! */
+             return(0);
+           }
+         } /* previous workpos */
+
+         /* now do the same from end of window to pos+1 */
+         for(workpos=HTTPERRORWINDOWLEN - 1;workpos >= pos+1; workpos--) {
+           if ((httperrorwindow[workpos] == '2') || (httperrorwindow[workpos] == '3')) {
+             /* found an empty slot */
+             fprintf(stderr,"DBG slot # %d for error %c %s\n", workpos, statusletter, newstatus);
+             noerrorslot = workpos;
+             httperrorwindow[noerrorslot] = statusletter;
+             /* do NOT advance the cursor !! */
+             return(0);
+           }
+         } /* previous workpos */
+         
+         /* only one option left to dump the error in */
+         workpos = pos;
+         if ((httperrorwindow[workpos] == '2') || (httperrorwindow[workpos] == '3')) {
+             fprintf(stderr,"DBG last slot # %d for error %c %s\n", workpos, statusletter, newstatus);
+             noerrorslot = workpos;
+             httperrorwindow[noerrorslot] = statusletter;
+             /* do NOT advance the cursor !! */
+             return(0);
+         }
+
+         /* OK the error window is filled with errors now. QUIT. */
+         fprintf(httpstatusdumpfile, "999 all the last %d HTTP requests gave errors, time to QUIT\n", HTTPERRORWINDOWLEN );
+         exit(1);
+         return(1);
+
+    break;
+  }
+
+  return(0);
+}
+
+
+void *keyw_status_code(FILE *s, const int keyidx, int *return_nextcontext)
+{
+  char *value = (char *) keyw_generic_kv(s, keyidx, return_nextcontext);
+
+  switch (keyidx) {
+    default: /* unexpected; ignore */
+      fprintf(stderr,"keyw_status_code(): IGNORE strange keyidx %d (%s) value %s\n", keyidx, lextable[keyidx].keyword, value);
+      break;
+
+    case KEYW_STATUS_CODE:
+      fprintf(stderr," DBG keyw_status_code(%s)\n", value);
+      fprintf(httpstatusdumpfile , "%s\n", value);
+      analyse_httperrorwindow(value);
+
+      break;
+  }
+
+  return((void *)value);
+}
+
 
 /*
    This function modifies the context to CONTEXT_RESPONSE
