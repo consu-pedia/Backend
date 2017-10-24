@@ -1439,7 +1439,10 @@ int analyse_httperrorwindow(const char *newstatus) {
          }
 
          /* OK the error window is filled with errors now. QUIT. */
-         fprintf(httpstatusdumpfile, "999 all the last %d HTTP requests gave errors, time to QUIT\n", HTTPERRORWINDOWLEN );
+         fprintf(httpstatusdumpfile, "999 too many of the last HTTP requests gave errors, time to QUIT\n");
+
+         /* HACK HACK HACK */
+         system("killall mitmdump");
          exit(1);
          return(1);
 
