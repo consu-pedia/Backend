@@ -1,0 +1,112 @@
+Thu Jun 29 07:47:16 CEST 2017
+
+idea: keep the 4792 records so it's easier to refer to them,
+but replace difficult or "wrong" ingred. lists with
+__DELETED__
+
+
+before implementing Levenshtein I have to get rid of ingredients
+parsed with too short names, like:
+
+step4: parse allergy information very carefully.
+
+347 ingredients with text "kan inne"
+98 of which with "kan inne.*och"
+
+
+time ./levenshtein > /dev/null
+DBG nw = 12198
+init_wordlist(): wordlist has 12198 words.
+levenshtein matrix: size 12198, doing 74389503 calculations.
+..0 ..1000 ..2000 ..3000 ..4000 ..5000 ..6000 ..7000 ..8000 ..9000 ..10000 ..11000 ..12000 
+
+real	17m17.800s
+user	17m16.540s
+sys	0m0.416s
+
+before the cutoff heuristic
+
+CUTOFF = 10:
+frits@frits:~/20170627.coop_food_ingredients/ingredients$ time ./levenshtein > /dev/null
+DBG nw = 12198
+init_wordlist(): wordlist has 12198 words.
+levenshtein matrix: size 12198, doing 74389503 calculations.
+..0 ..1000 ..2000 ..3000 ..4000 ..5000 ..6000 ..7000 ..8000 ..9000 ..10000 ..11000 ..12000 
+
+real	3m37.264s
+user	3m37.176s
+sys	0m0.032s
+
+
+CUTOFF = 6:
+time ./levenshtein > /dev/null
+DBG nw = 12198
+init_wordlist(): wordlist has 12198 words.
+levenshtein matrix: size 12198, doing 74389503 calculations.
+..0 ..1000 ..2000 ..3000 ..4000 ..5000 ..6000 ..7000 ..8000 ..9000 ..10000 ..11000 ..12000 
+
+real	2m12.191s
+user	2m12.128s
+sys	0m0.032s
+
+-rw-r--r-- 1 frits frits 155M Jun 29 11:22 table.12198.levenshtein.out
+
+
+Thu Jun 29 13:39:35 CEST 2017
+parse vitamins specially: otherwise too short words:
+
+vitaminer (c, e, niacin, pantotensyra, b1, a, b6, b2, folsyra, k, d, biotin),
+
+comma-split becomes "c", "e", "a", "d" etc.
+
+
+Thu Jun 29 15:20:38 CEST 2017
+problem with my parsing chain is that I have more than 1 data stream.
+
+ingredientslist data stream becomes ingredientslist data stream + ingredients data stream
+then I process the latter (in steps)
+at the end I have to process the first again.
+
+maybe just do a "cat" as main command in the table-processing steps!
+
+
+Fri Jun 30 10:22:56 CEST 2017
+after an annoying bug that took several hours to find
+
+selection of the ingredients is now done.
+and I could write the product-ingredients table now
+next step is to coalesce the ingredients list with the levenshtein algorithm,
+boil it down from 11000 to ??
+can always make a subsequent step to re-label
+
+next 5 steps:
+
+6. write product-ingredients
+7. levenshtein
+8. similar ingredients dump
+9. similar ingredients manual edit => translation table ingredients_raw to ingredients_cooked
+10. rewrite product-ingredients to point to the smaller ingretients_cooked list
+
+
+Mon Jul  3 13:51:38 CEST 2017
+interesting:
+
+
+solrosolja > 1x (product, content) so not a unique key:
+
+havregryn, inulin (fiber), veteflingor, solrosolja, torkade tranbär (tranbär, koncentrerad ananasjuice, solrosolja), solroskärnor, kokosflingor, linfrön, frystorkade jordgubbar (jordgubbar, solrosolja), salt, naturlig arom, vanilj.',
+jordnötter (jordnötter, palmolja, salt), cashewnötter (cashewnötter, palmolja, salt), honungsrostade jordnötter (jordnötter, socker, honung, palmolja, solrosolja, salt, förtjockningsmedel (e 415)), tranbär (tranbär, socker, solrosolja), blåbär (blåbär, socker, solrosolja). variationer i innehållsfördelningen kan förekomma. kan innehålla spår av andra nötter.',
+
+
+kafffe:
+
+    0 => '100% Arabica Kaffe',
+    0 => '100% Arabica Kafffe',
+    0 => 'INGREDIENSER: 100% Arabica Kaffe.',
+
+
+
+Thu Nov  2 13:58:37 CET 2017
+begin re-writing things for the Willys data.
+If I'm lucky, almost nothing needs to be changed or rewritten.
+But just in case.

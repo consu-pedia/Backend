@@ -1,0 +1,20 @@
+======================================================================
+    0 => 'INGREDIENSER: Granatäpplejuice(56%) framställd av koncentratgranatäpple juice, vatten, socker, antioxidationsmedel;askorbinsyraoch arom.INGREDIENTS: Pomegranate Juice(56%) prepared from concentratepomegranate juice, water, sugar, antioxidants; ascorbic acidand flavoring.',
+
+This record has:
+- 2 languages SV and EN in 1 record, separated with INGREDIENSER: and INGREDIENTS:
+- words glued together: askorbinsyraoch => askorbinsyra och, acidand => acid and
+
+
+======================================================================
+
+    0 => 'MJÖLK/MÆLK/MELK, socker, kakaomassa, kakaosmör, HASSELNÖTTER/HASSELNØDDER (10%), vegetabiliskt fett (palm, shea), VETEMJÖL/HVEDEMEL, MJÖLKFETT/MÆLKEFEDT/MELKEFETT, majsstärkelse, emulgeringsmedel (lecitin, bl.a SOJA), salt, aromer. KAN INNEHÅLLA ANDRA NÖTTER OCH MANDEL/KAN INDEHOLDE ANDRE NØDDER OG MANDLER. Mörk choklad innehåller minst 47% kakao/kakaotørstof. Mjölkchokladen innehåller minst 30% kakao/kakaotørstof.',
+
+This record has a list of ingredients, and:
+- some written in capital letters some not
+- some written as 1 word in SV
+- some written as 3 words separated with slash in SV/NO/DK e.g. MJÖLK/MÆLK/MELK
+- some written as 2 words separated with slash, where 2 of the 3 Scandi
+  languages have the same written form, e.g. VETEMJÖL/HVEDEMEL
+======================================================================
+
