@@ -16,7 +16,7 @@
 # line 13: if there are no units, put a space back
 cat |\
   sed -e 's?\(^\|[^a-z]\)\([1-9][0-9]*\)  *\([1-9]/[1-9]\) ?QUANT_\2_\3_QUANT?g;' |\
-  sed -e 's?\(^\|[^a-z]\)\([1-9]/[1-9]\) ?QUANT_\2_QUANT?g;' |\
+  sed -e 's?\(^\|[^a-z0-9]\)\([1-9]/[1-9]\) ?\1 QUANT_\2_QUANT?g;' |\
   sed -e 's?\(^\|[^a-z0-9]\)\(¼\|½\|¾\)? QUANT_\2_QUANT?g;' |\
   sed -e 's?\(^\|[^a-z]\)\([1-9][0-9]*\) *\(¼\|½\|¾\)? QUANT_\2\3_QUANT?g;' |\
   sed -e 's?\(^\|[^a-z0-9]\)\([0-9][0-9]*\) \([0-9][0-9]*\)\([^0-9]\|$\)? QUANT_\2\3_QUANT\4?g;' |\
