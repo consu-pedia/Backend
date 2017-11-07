@@ -11,8 +11,9 @@
 # line 8 parses formal (SI) units directly after a number
 # line 9 parses informal units
 # line 10 parses formal (SI) units after a number and a space
-# line 11 TODO parses "56 mg/100 ml", "8 g / 100 g" etc.
-# line 12: if there are no units, put a space back
+# line 11 parses combination units such as mg/kg
+# line 12 TODO parses "56 mg/100 ml", "8 g / 100 g" etc.
+# line 13: if there are no units, put a space back
 cat |\
   sed -e 's?\(^\|[^a-z]\)\([1-9][0-9]*\)  *\([1-9]/[1-9]\) ?QUANT_\2_\3_QUANT?g;' |\
   sed -e 's?\(^\|[^a-z]\)\([1-9]/[1-9]\) ?QUANT_\2_QUANT?g;' |\
@@ -23,10 +24,12 @@ cat |\
   sed -e 's?\(^\|[^a-z]\)\([1-9][0-9]*\) ? QUANT_\2_QUANT?g;' |\
   sed -e 's?\(^\|[^a-z]\)\([1-9][0-9]*\) *\(g\|mg\|kg\|ml\|dl\)\( \|[^0-9a-z]\)? QUANT_\2_QUANT UNIT_\3_UNIT\4?g;' |\
   sed -e 's/QUANT *\(msk\|tsk\|skvätt\|stor klick\|klyfta\|st\) /QUANT UNIT_\1_UNIT /g;' |\
-  sed -e 's/QUANT *\(ml\|dl\|mg\|g\|kg\|liter\)\( \|[^0-9a-z]\)/QUANT UNIT_\1_UNIT /g;' |\
-  sed -e 's?UNIT/ *[0-9]* *\(kg\|ml\|dl\)?UNIT UNITFRAC_\1_UNITFRAC ?g' |\
+  sed -e 's/QUANT *\(ml\|dl\|mg\|g\|kg\|liter\)\( \|[^0-9a-z]\)/QUANT UNIT_\1_UNIT \2/g;' |\
+   sed -e 's?UNIT /\(kg\|ml\|dl\)?UNIT UNITFRAC_\1_UNITFRAC ?g' |\
   sed -e 's/QUANT\([^ ]\)/QUANT \1/g' |\
   cat
+
+#   sed -e 's?UNIT/ *[0-9]* *\(kg\|ml\|dl\)?UNIT UNITFRAC_\1_UNITFRAC ?g' |\
 
 exit 0
 
