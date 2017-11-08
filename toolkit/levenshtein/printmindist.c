@@ -230,7 +230,7 @@ int parse_matrix_and_print_pairs(const char *pairformat, const int nw, char **wl
   /* HACK: reset record number if SQL output. This number gets
      used is record index and incremented with each call to print_pair() */
   if (!strcmp(pairformat,PAIRFORMAT_SQL)){
-    sql_recordid = 0;
+    sql_recordid = 1;
     print_create_table_jamfor_ingredienser(stdout);
   }
 
