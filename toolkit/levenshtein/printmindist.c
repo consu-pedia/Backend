@@ -202,6 +202,25 @@ int print_pair(const char *pairformat, FILE *outf, const int dist, const int x, 
   return(res);
 }
 
+int print_create_table_jamfor_ingredienser(FILE *stream)
+{
+  fprintf(stream, "DROP TABLE IF EXISTS `compare_ingredients`;\n");
+  fprintf(stream, "\n");
+  fprintf(stream, "CREATE TABLE `compare_ingredients` (\n");
+  fprintf(stream, "  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,\n");
+  fprintf(stream, "  `record_1_id` int(10) unsigned NOT NULL,\n");
+  fprintf(stream, "  `record_1_text` text COLLATE utf8_bin NOT NULL,\n");
+  fprintf(stream, "  `record_2_id` int(10) unsigned NOT NULL,\n");
+  fprintf(stream, "  `record_2_text` text COLLATE utf8_bin NOT NULL,\n");
+  fprintf(stream, "  `edit_distance` int(10) unsigned NOT NULL,\n");
+  fprintf(stream, "  `result` int(1) NOT NULL,\n");
+  fprintf(stream, "  `processed` int(1) NOT NULL,\n");
+  fprintf(stream, "  PRIMARY KEY (`id`)\n");
+  fprintf(stream, ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;\n");
+  fprintf(stream, "\n");
+  return(0);
+}
+
 int parse_matrix_and_print_pairs(const char *pairformat, const int nw, char **wl, int co)
 {
   int x, y;
@@ -212,6 +231,7 @@ int parse_matrix_and_print_pairs(const char *pairformat, const int nw, char **wl
      used is record index and incremented with each call to print_pair() */
   if (!strcmp(pairformat,PAIRFORMAT_SQL)){
     sql_recordid = 0;
+    print_create_table_jamfor_ingredienser(stdout);
   }
 
   stdinline=(char *) malloc(65536+1);
@@ -274,6 +294,10 @@ int parse_matrix_and_print_pairs(const char *pairformat, const int nw, char **wl
 
 
   free(stdinline);
+
+  if (!strcmp(pairformat,PAIRFORMAT_SQL)){
+    fprintf(stdout, "\n");
+  }
 
   return(0);
 }
