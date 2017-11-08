@@ -15,6 +15,10 @@
 #define CUTOFF	6
 static int cutoff = 0;
 
+#define PAIRFORMAT_TEXT	"TEXT"
+#define PAIRFORMAT_SQL	"SQL"
+static int sql_recordid = 0;
+
 int nw=0;
 char **wordlist = NULL;
 
@@ -152,17 +156,63 @@ void calc_and_print_matrix(const int nw, char **wl)
   fprintf(stderr,"\n");
 }
 
-int print_pair(FILE *outf, const int dist, const int x, const int y)
+int print_pair_text(FILE *outf, const int dist, const int x, const int y)
 {
   fprintf(outf, "%d\t%d\t%s\t%d\t%s\t\n", dist, x, wordlist[x], y, wordlist[y]);
   return(0);
 }
 
-int parse_matrix_and_print_pairs(const int nw, char **wl, int co)
+static char *sanitize(char *inp){
+  /* TODO implement input sanitizing */
+  return(inp);
+}
+
+int print_pair_sql(FILE *outf, const int dist, const int x, const int y)
+{
+ // fprintf(outf, "TODO %d\t%d\t%s\t%d\t%s\t\n", dist, x, wordlist[x], y, wordlist[y]);
+  fprintf(outf, "INSERT INTO compare_ingredients VALUES ( %d , %d , \"%s\" , %d , \"%s\" , %d , %d , %d );\n",
+          sql_recordid,
+          x, sanitize(wordlist[x]),
+          y, sanitize(wordlist[y]),
+          dist,
+          4 /* default value for result */,
+          0 /* default value for processed */
+         );
+
+  sql_recordid++;
+
+  return(0);
+}
+
+int print_pair(const char *pairformat, FILE *outf, const int dist, const int x, const int y)
+{
+  int res=0;
+
+  if (pairformat==NULL) { return(0);}
+  if (!strcmp(pairformat,PAIRFORMAT_TEXT)) {
+    res=print_pair_text(outf, dist, x, y); 
+  } else {
+    if (!strcmp(pairformat,PAIRFORMAT_SQL)) {
+      res=print_pair_sql(outf, dist, x, y); 
+    } else {
+      fprintf(stderr,"INTERNAL ERROR print_pair(pairformat=%s): only \"TEXT\" or \"SQL\" supported\n", pairformat);
+      return(-1);
+    }
+  }
+  return(res);
+}
+
+int parse_matrix_and_print_pairs(const char *pairformat, const int nw, char **wl, int co)
 {
   int x, y;
   char *stdinline = NULL, *curystring = NULL;
   int ok, dist, vrf_nw;
+
+  /* HACK: reset record number if SQL output. This number gets
+     used is record index and incremented with each call to print_pair() */
+  if (!strcmp(pairformat,PAIRFORMAT_SQL)){
+    sql_recordid = 0;
+  }
 
   stdinline=(char *) malloc(65536+1);
   memset(stdinline, 0x00, 65536+1);
@@ -201,7 +251,7 @@ int parse_matrix_and_print_pairs(const int nw, char **wl, int co)
     ok = sscanf(curystring, "%d", &dist);
     if (ok!=1) break;
     if (dist < co){
-      print_pair(stdout, dist, x, y);
+      print_pair(pairformat, stdout, dist, x, y);
     }
     // fprintf(stdout,"DBG dist[%d][%d]= %d\n",x,y,dist);
     
@@ -212,7 +262,7 @@ int parse_matrix_and_print_pairs(const int nw, char **wl, int co)
       ok = sscanf(curystring, "%d", &dist);
       if (ok!=1) break;
       if (dist < co){
-        print_pair(stdout, dist, x, y);
+        print_pair(pairformat, stdout, dist, x, y);
       }
       //DBG fprintf(stdout,"DBG dist[%d][%d]= %d\n",x,y,dist);
     }
@@ -255,7 +305,7 @@ int main(int argc, char *argv[])
   
 
   // calc_and_print_matrix(nw, wordlist);
-  parse_matrix_and_print_pairs(nw, wordlist, cutoff);
+  parse_matrix_and_print_pairs(PAIRFORMAT_SQL, nw, wordlist, cutoff);
 
   free_wordlist();
   exit(0);
