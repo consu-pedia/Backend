@@ -17,7 +17,7 @@ static int cutoff = 0;
 
 #define PAIRFORMAT_TEXT	"TEXT"
 #define PAIRFORMAT_SQL	"SQL"
-static int sql_recordid = 0;
+static int sql_recordid = 1;
 
 int nw=0;
 char **wordlist = NULL;
