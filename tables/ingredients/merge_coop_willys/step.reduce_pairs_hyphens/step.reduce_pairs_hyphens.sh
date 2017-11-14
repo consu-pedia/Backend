@@ -107,12 +107,12 @@ for dist in 1 ; do
 
 done # next dist
 
-for dist in 1 2 3; do
-  echo
-  mv -v $OUTDIR/tmp.work.$dist $OUTDIR/tmp10.pairs.$dist.sql
-  mv -v $OUTDIR/tmp.discard.$dist $OUTDIR/tmp10.pairs.discard.$dist.sql
-  wc -l $OUTDIR/tmp9.pairs.$dist.sql
-  wc -l $OUTDIR/tmp10.pairs.$dist.sql $OUTDIR/tmp10.pairs.discard.$dist.sql
+for dist in 1    ; do
+  eecho ""
+  eecho $( mv -v $OUTDIR/tmp.work.$dist $OUTDIR/tmp10.pairs.$dist.sql )
+  eecho $( mv -v $OUTDIR/tmp.discard.$dist $OUTDIR/tmp10.pairs.discard.$dist.sql )
+  eecho $( wc -l $OUTDIR/tmp9.pairs.$dist.sql )
+  eecho $( wc -l $OUTDIR/tmp10.pairs.$dist.sql $OUTDIR/tmp10.pairs.discard.$dist.sql )
 done
 
 cat $OUTDIR/tmp10.mainstream
