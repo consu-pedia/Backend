@@ -1,0 +1,4 @@
+INSERT INTO compare_ingredients VALUES ( 193 , 276 , "ananasjuice" , 277 , "ananasjuice-" , 1 , 4 , 0 );
+INSERT INTO compare_ingredients VALUES ( 194 , 276 , "ananasjuice" , 278 , "ananasjuice." , 1 , 4 , 0 );
+INSERT INTO compare_ingredients VALUES ( 195 , 277 , "ananasjuice-" , 278 , "ananasjuice." , 1 , 4 , 0 );
+INSERT INTO compare_ingredients VALUES ( 196 , 282 , "ananasjuicekoncentrat" , 283 , "ananasjuice koncentrat" , 1 , 4 , 0 );

@@ -1,6 +1,6 @@
 #!/bin/bash
-# PATH_TO_LEVENSHTEIN="../../../toolkit/levenshtein"
-PATH_TO_LEVENSHTEIN="../../../../toolkit/levenshtein"
+PATH_TO_LEVENSHTEIN="../../../toolkit/levenshtein"
+# PATH_TO_LEVENSHTEIN="../../../../toolkit/levenshtein"
 LEVENSHTEIN=$PATH_TO_LEVENSHTEIN/levenshtein
 PRINTMINDIST=$PATH_TO_LEVENSHTEIN/printmindist
 PAIRSCUTOFF=4
