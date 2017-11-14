@@ -1,7 +1,7 @@
 #!/bin/bash
 # use current ingredients list to form product-ingredients
 
-cat > $OUTDIR/tmp.mainstream
+cat > $OUTDIR/tmp6.mainstream
 
 eecho()
 {
