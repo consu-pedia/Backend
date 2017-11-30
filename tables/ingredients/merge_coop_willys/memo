@@ -1,0 +1,6 @@
+Step 100 = create tmp.ingredients table
+
+This is the best point to "coalesce" them; then do the other steps
+using ingredients from BOTH
+
+

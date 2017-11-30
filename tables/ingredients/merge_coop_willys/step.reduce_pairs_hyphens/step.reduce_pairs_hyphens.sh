@@ -86,7 +86,7 @@ for dist in 1 ; do
 
     # compare letter to letter
 
-    bingo=$( echo "$shortstring""""$longstring" | awk -F'' -f ../reduce_pairs_spaces.awk )
+    bingo=$( echo "$shortstring""""$longstring" | awk -F'' -f reduce_pairs_spaces.awk )
 
     eecho "DBG bingo=  $bingo for $w1	/	$w2"
 
