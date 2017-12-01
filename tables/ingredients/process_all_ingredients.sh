@@ -19,6 +19,9 @@
 
 # PHASE 1.5: GLUING
 # I see no reason why we can't glue all of the records together now already.
+# export them (end of phase 1) and glue them at beginning of the phase 2 script.
+
+# cd glue; ./glue_shops_together.sh; cd ..
 
 
 # PHASE 2: EDITING
@@ -26,6 +29,7 @@
 # extract quantities, units, and lists of vitamins and E-numbers.
 # There is also one step, for blacklists/whitelists, that is interactive
 
+# cd editing; ./edit_ingredientslists.sh; cd ..
 
 # PHASE 3: TABLE SPLITTING
 # The steps in this phase are complicated scripts that split the
