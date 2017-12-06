@@ -39,6 +39,8 @@
 # many steps do not change the original products file, but instead
 # operate on the derived ingredients table.
 
+# cd ingredientstables; ./create_ingredientstables.sh; cd ..
+
 
 # PHASE 4: DATA CLEANUP  
 # There are far too many ingredients, almost all the same.
