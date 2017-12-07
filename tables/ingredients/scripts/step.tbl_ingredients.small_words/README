@@ -1,0 +1,10 @@
+The two files ingredients.blacklist and ingredients.whitelist
+are derived from the old Coop dataset.
+They can be used as a "seed" for blacklists and whitelists of all the data.
+
+The word "ib" is not an ingredient, but it comes from:
+
+renskurna torskfiléer gadus morhua utan skinn och ben enstaka ben kan förekomma. krav-certifierad av prosanitas certiferingab. fångstområde: fiskad med krok och lina i nordostatlanten fao-27/barents hav ia, ib, norska havet iia, spetsbergen och björnen iib.
+
+and it's too much bother to parse the fångstområde in so much detail that it distinguishes FAO zones from the next food ingredients :-(
+
