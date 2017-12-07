@@ -11,6 +11,11 @@ if [ ! -x $LEVENSHTEIN ]; then
   exit 1
 fi
 
+eecho()
+{
+  ( echo $* 1>&2 ) > /dev/null
+}
+
 cp -p tmp.ingredients $OUTDIR/tmp7.ingredients.in
 cp -p tmp.ingredients wordlist # I know, i know. TODO.
 
@@ -21,8 +26,12 @@ time $LEVENSHTEIN $OUTDIR/tmp7.ingredients.in > $OUTDIR/tmp7.levenshtein_matrix
 time  $PRINTMINDIST $PAIRSCUTOFF wordlist < $OUTDIR/tmp7.levenshtein_matrix > $OUTDIR/tmp7.pairs.upto$PAIRSCUTOFF
 
 for dist in $( seq 1 $PAIRSCUTOFF ); do
-  cat $OUTDIR/tmp7.pairs.upto$PAIRSCUTOFF | grep '^'"$dist"'	' > $OUTDIR/tmp7.pairs.$dist
-  wc -l $OUTDIR/tmp7.pairs.$dist
+  #OBSOLETE cat $OUTDIR/tmp7.pairs.upto$PAIRSCUTOFF | grep '^'"$dist"'	' > $OUTDIR/tmp7.pairs.$dist
+  # unfortunately, $PRINTMINDIST now outputs SQL.
+  # example:
+  # INSERT INTO compare_ingredients VALUES ( 945 , 1181 , "cayennepeppar" , 3755 , "kajennpeppar" , 3 , 4 , 0 );
+  cat $OUTDIR/tmp7.pairs.upto$PAIRSCUTOFF | awk -v"dist=$dist" '{if((NF>5)&&($(NF-5)==dist)){print}}' > $OUTDIR/tmp7.pairs.$dist
+  eecho $( wc -l $OUTDIR/tmp7.pairs.$dist )
 done
 
 
