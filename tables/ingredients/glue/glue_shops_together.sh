@@ -4,7 +4,7 @@
 # SHOPS="coop willys"
 SHOPS="oldcoop"
 
-WORKFILES="gtin_table.sql raw_ingredientslists productnames.txt"
+WORKFILES="gtin_table.raw gtin_table.sql raw_ingredientslists productnames.txt"
 
 totrecords=0
 rm -rf gluedir

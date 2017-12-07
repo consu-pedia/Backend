@@ -8,6 +8,7 @@ cat > $OUTDIR/export/export.$shopname.raw_ingredientslists
 
 wc -l $OUTDIR/export/export.$shopname.raw_ingredientslists
 
+cp -p $OUTDIR/gtin_table.raw $OUTDIR/export/export.$shopname.gtin_table.raw
 cp -p $OUTDIR/gtin_table.sql $OUTDIR/export/export.$shopname.gtin_table.sql
 
 if [ -s $OUTDIR/tmp1.productnames ]; then
