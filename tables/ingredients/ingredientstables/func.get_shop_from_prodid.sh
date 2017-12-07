@@ -1,0 +1,1 @@
+../scripts/step.second_version_product_ingredients_table/func.get_shop_from_prodid.sh
