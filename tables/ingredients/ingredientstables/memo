@@ -1,0 +1,6 @@
+Thu Dec  7 07:58:01 CET 2017
+Maybe I should rewrite to make the ingredients the primary data stream for this program.
+
+But for now, just take the existing code:
+ingredients lists just get passed on without change,
+and the ingredients tables get built.
