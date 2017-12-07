@@ -41,7 +41,7 @@ cat $OUTDIR/tmp.idxtable.mainstream |\
           } \
         }\
         if (st==3) { \
-          printf("%d %s %s\n", recno, shop, lastgtin) >> OD"/gtin_table.raw"; \
+          printf("%d%s%s\n", recno, lastgtin, shop) >> OD"/gtin_table.raw"; \
           recno++; \
           st=0; \
           next; \
@@ -53,7 +53,7 @@ cat $OUTDIR/tmp.idxtable.mainstream |\
 
 # convert gtin table to SQL
 cat $OUTDIR/gtin_table.raw |\
-  awk '{ printf("INSERT INTO gtintable VALUES ( %d, \"%s\", \"%s\" );\n", $1, $2, $3);}' |\
+  awk -F'' '{ printf("INSERT INTO gtintable VALUES ( %d, \"%s\", \"%s\" );\n", $1, $3, $2);}' |\
   cat > $OUTDIR/gtin_table.sql
 
 # pass-thru

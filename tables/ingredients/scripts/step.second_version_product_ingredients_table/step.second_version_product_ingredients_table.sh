@@ -6,6 +6,7 @@
 # Willys has 2 products (Pukka Detox Te with Cardamom)
 # 101146136_ST => { 850835000122 , "willys" }
 # 101248269_ST => { 850835000122 , "willys" }
+# N.B. this script imports an output file from the "glue" phase, glue/gluedir/gtin_table.raw
 
 cat > $OUTDIR/tmp6a.mainstream
 
@@ -33,7 +34,6 @@ eecho()
 
 
 cp $CURINP $OUTDIR/tmp6a.inp
-cp tmp6.inp $OUTDIR/tmp6a.inp
 
 #DONTUSE# np=$( cat $OUTDIR/tmp6a.inp | wc -l )
 #DONTUSE# nw=$( cat $CURINP_INGREDIENTS | wc -l )
@@ -112,7 +112,7 @@ cat $OUTDIR/tmp6a.merge.01 |\
 rm -f $OUTDIR/tmp6a.auxtable
 for pi in $( seq 1 $nprod ); do
   shop=$( get_shop_from_prodid $pi )
-  prodid_gtin=$( grep '^'"$pi"'' $OUTDIR/tmp1a.product_gtin_table.raw )
+  prodid_gtin=$( grep '^'"$pi"'' ../glue/gluedir/gtin_table.raw )
   echo "$pi"""",sortingfield""""$shop""""$prodid_gtin" >> $OUTDIR/tmp6a.auxtable
 done
 
@@ -123,7 +123,7 @@ cat $OUTDIR/tmp6a.merge.02 $OUTDIR/tmp6a.auxtable | sort -t'' -n > $OUTDIR/tmp6
 
 cat $OUTDIR/tmp6a.merge.02 $OUTDIR/tmp6a.auxtable |\
   sort -t'' -n -k1,2 -r |\
-  awk -F'' '{if (NF==5){shop=$3;prodid=$4;gtin=$5;}else { if (NF==3){ content_id = $2; content_product_ranknr = $3; printf("%s%s%s%s%s\n", gtin, shop, prodid, content_id, content_product_ranknr );}else {printf("ERROR %s\n",$0);} } }' |\
+  awk -F'' '{if (NF==6){shop=$3;prodid=$4;gtin=$5;}else { if (NF==3){ content_id = $2; content_product_ranknr = $3; printf("%s%s%s%s%s\n", gtin, shop, prodid, content_id, content_product_ranknr );}else {printf("ERROR %s\n",$0);} } }' |\
   cat > $OUTDIR/tmp6a.merge.02.75
 
 # N.B. table tmp6a.merge.02.75 has prodid as field #3, but it is NOT stored in the SQL table!
@@ -169,7 +169,7 @@ cat $OUTDIR/tmp6a.merge.03 |\
   sort -n | uniq |\
   grep '_INGREDIENT_' |\
   tr '\037_' ',,' |\
-  awk -F, '{printf("INSERT INTO content_product SET id = %d, gtin_id = %s, shop = %s, content_id = %s, content_product_ranknr = %s;\n", NR, $1 , $2 , $6 , $8 );}' |\
+  awk -F, '{printf("INSERT INTO content_product SET id = %d, gtin_id = %s, shop = \"%s\", content_id = %s, content_product_ranknr = %s;\n", NR, $1 , $2 , $6 , $8 );}' |\
   cat >> $OUTDIR/tmp6a.content_product.sql
 
 
