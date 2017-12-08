@@ -24,6 +24,8 @@ cat |\
   sed -e 's/vitaminer (\([^,)]*\),/__VITAMINER__ (__\1__), vitaminer (/g' |\
   sed -e 's/vitaminer (\([^)]*\),/__VITAMINER__ (__\1__), vitaminer (/g' |\
   sed -e 's/__ /__/g; s/vitaminer (\([^)]*\))/vitamin \1/;s/__VITAMINER__(__\([^_]*\)__)/vitamin \1/g;' |\
+  sed -e 's/vitamin vitamin /__V2__/g;' |\
+  sed -e 's/__V2__/vitamin /g;' |\
   cat
 
 exit 0
