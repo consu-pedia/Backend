@@ -6,6 +6,7 @@
 cat |\
   tee tmp.mainstream |\
   tr ',' '\n' |\
+  sed -e 's/^  *//' |\
   sort | uniq > tmp.ingredients
 
 cat tmp.mainstream
