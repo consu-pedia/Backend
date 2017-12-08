@@ -1,0 +1,167 @@
+{
+   "pickupProductLine2" : "Grey Poupon, 215g",
+   "preparationType" : "",
+   "breadCrumbs" : [
+      {
+         "name" : "Alla varor",
+         "linkClass" : null,
+         "url" : null,
+         "categoryCode" : "N00"
+      },
+      {
+         "url" : "Skafferi",
+         "categoryCode" : "N07",
+         "name" : "Skafferi",
+         "linkClass" : null
+      },
+      {
+         "linkClass" : null,
+         "name" : "Kryddor & smaksättare",
+         "categoryCode" : "N0706",
+         "url" : "Skafferi/Kryddor-och-smaksattare"
+      },
+      {
+         "linkClass" : null,
+         "name" : "Senap",
+         "categoryCode" : "N070607",
+         "url" : "Skafferi/Kryddor-och-smaksattare/Senap"
+      },
+      {
+         "linkClass" : "active",
+         "name" : "Dijonsenap Ljus",
+         "categoryCode" : null,
+         "url" : "/produkt/Dijonsenap-Ljus-100008698_ST"
+      }
+   ],
+   "thumbnail" : {
+      "url" : "https://d2rfo6yapuixuu.cloudfront.net/hca/h63/8853992636446/3036810100576.jpg_master_axfood_100",
+      "galleryIndex" : null,
+      "format" : "thumbnail",
+      "altText" : "Dijonsenap Ljus 215g Grey Poupon",
+      "imageType" : "PRIMARY",
+      "width" : null
+   },
+   "code" : "100008698_ST",
+   "depositPrice" : "",
+   "areBatteriesIncluded" : null,
+   "mayContainAllergens" : [],
+   "servingSize" : null,
+   "comparePriceUnit" : "kg",
+   "activeSubstance" : "",
+   "medicineLink" : "",
+   "containAllergens" : [
+      "Senap",
+      "Svaveldioxid eller sulfit"
+   ],
+   "consumerUsageInstructions" : "",
+   "labels" : [],
+   "healthClaimDescription" : "",
+   "minStorageTemprature" : "",
+   "nutritionsFactList" : [
+      {
+         "unitCode" : "kilojoule",
+         "value" : "640",
+         "measurementPrecisionCode" : "ca",
+         "typeCode" : "energi"
+      },
+      {
+         "value" : "150",
+         "unitCode" : "kilokalori",
+         "measurementPrecisionCode" : "ca",
+         "typeCode" : "energi"
+      },
+      {
+         "unitCode" : "gram",
+         "value" : "11",
+         "measurementPrecisionCode" : "ca",
+         "typeCode" : "fett"
+      },
+      {
+         "value" : "0.70",
+         "unitCode" : "gram",
+         "typeCode" : "varav mättat fett",
+         "measurementPrecisionCode" : "ca"
+      },
+      {
+         "value" : "6.20",
+         "unitCode" : "gram",
+         "measurementPrecisionCode" : "ca",
+         "typeCode" : "kolhydrat"
+      },
+      {
+         "value" : "0.50",
+         "unitCode" : "gram",
+         "typeCode" : "varav sockerarter",
+         "measurementPrecisionCode" : "<"
+      },
+      {
+         "unitCode" : "gram",
+         "value" : "6.70",
+         "typeCode" : "protein",
+         "measurementPrecisionCode" : "ca"
+      },
+      {
+         "typeCode" : "salt",
+         "measurementPrecisionCode" : "ca",
+         "unitCode" : "gram",
+         "value" : "5.80"
+      }
+   ],
+   "incrementValue" : 1,
+   "productLine2" : "Grey Poupon, 215g",
+   "extraInfoCode" : "",
+   "otherCountries" : [],
+   "manufacturer" : "Grey Poupon",
+   "consumerStorageInstructions" : "",
+   "categoryGroupText" : "",
+   "maxStorageTemprature" : "",
+   "foodContactName" : "",
+   "image" : {
+      "width" : null,
+      "format" : "zoom",
+      "altText" : "Dijonsenap Ljus 215g Grey Poupon",
+      "imageType" : "PRIMARY",
+      "url" : "https://d2rfo6yapuixuu.cloudfront.net/h0b/h60/8853992505374/3036810100576.jpg_master_axfood_400",
+      "galleryIndex" : null
+   },
+   "priceValue" : 18.5,
+   "outOfStock" : false,
+   "nutritionalClaim" : "",
+   "hazards" : [],
+   "ean" : "3036810100576",
+   "nutritionDescription" : "100 Gram",
+   "countryOfOriginStatement" : "",
+   "productBasketType" : {
+      "type" : "ProductBasketTypeEnum",
+      "code" : "ST"
+   },
+   "price" : "18,50 kr",
+   "manufacturingCountry" : "Frankrike",
+   "regulatoryAct" : "",
+   "dietTypeInformation" : "",
+   "ranking" : null,
+   "foodContactAddress" : "",
+   "compulsoryAdditiveLabelInformation" : "",
+   "variantType" : "",
+   "nutritionFacts" : "",
+   "averageWeight" : null,
+   "online" : true,
+   "preparationDescription" : "",
+   "name" : "Dijonsenap Ljus",
+   "instructions" : "",
+   "originCountry" : "",
+   "potentialPromotions" : [],
+   "batteryInformation" : [],
+   "savingsAmount" : null,
+   "displayVolume" : "215g",
+   "comparePrice" : "86,04 kr",
+   "medicineType" : "",
+   "precautionaryStatements" : [],
+   "isDrugProduct" : false,
+   "fruitAndVegetableVariety" : "",
+   "areBatteriesRequired" : null,
+   "description" : "Dijonsenap med vitt vin",
+   "ingredients" : "Ingredienser: Vatten, SENAPSFRÖ, vitt vin (20%), salt, surhetsreglerande medel (citronsyra), konserveringsmedel (KALIUMDISULFIT).",
+   "priceNoUnit" : "18,50",
+   "priceUnit" : "kr/st"
+}
