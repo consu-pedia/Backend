@@ -33,7 +33,7 @@ cp $CURINP $OUTDIR/tmp6.inp
 nprod=$( cat $OUTDIR/tmp6.inp | wc -l )
 ningred=$( cat $CURINP_INGREDIENTS | wc -l )
 
-echo "$nprod products $ningred ingredients"
+eecho "$nprod products $ningred ingredients"
 
 # prepro: check nothing contains control code 0x1f octal \037
 
@@ -127,7 +127,6 @@ done
 # TODO reconstruct until it looks like the input again, i.e. substitute the
 # ingredients
 
-exit 0
 
 #======================================================================
 
