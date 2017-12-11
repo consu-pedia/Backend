@@ -22,7 +22,7 @@ done
 # I see no reason why we can't glue all of the records together now already.
 # export them (end of phase 1) and glue them at beginning of the phase 2 script.
 
-# cd glue; ./glue_shops_together.sh; cd ..
+cd glue; ./glue_shops_together.sh; cd ..
 
 
 # PHASE 2: EDITING

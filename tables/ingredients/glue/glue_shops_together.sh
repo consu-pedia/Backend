@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # this list is hardcoded for now
-# SHOPS="coop willys"
-SHOPS="oldcoop"
+SHOPS="oldcoop willys"
 
 WORKFILES="gtin_table.raw gtin_table.sql raw_ingredientslists productnames.txt"
 
