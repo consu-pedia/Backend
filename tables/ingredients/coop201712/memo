@@ -1,0 +1,19 @@
+Mon Dec 11 14:45:42 CET 2017
+Found an ERROR in the coop201712 input set
+on line 151919
+
+duplicate
+            },
+            },
+
+which translates to an empty record *without gtin*
+(so that the gtin and the product tables run askew)
+
+
+Mon Dec 11 15:25:25 CET 2017
+There are still 14 records "unknown_product"
+and probably those cause that there's no gtin for 14 records
+(4670 + 14 = 4684 records)
+
+input blob has only 4670 '"Entity" records
+so use that as record sep (except for the last one)

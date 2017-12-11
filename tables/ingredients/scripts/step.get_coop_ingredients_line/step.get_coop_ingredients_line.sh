@@ -20,7 +20,7 @@ cat |\
 
 cat $OUTDIR/tmp1.ofp |\
   sed -e 's/^  *0 => *\x27//;s/\x27,$//;' |\
-  tr '[:upper:]' '[:lower:]' | tr 'ÄÅÖ' 'äåö' |\
+  tr '[:upper:]' '[:lower:]' | tr 'ÄÅÖÉ' 'äåöé' |\
   cat > $OUTDIR/tmp1.productnames
 
 exit 0
