@@ -12,9 +12,10 @@
 # The programs to get it normalized can be different for each shop,
 # have slightly differing steps etc.
 
-# for shop in oldcoop; do
-#   cd $shop; ./process_ingredients.sh; cd ..
-# done
+echo 0 > index.gtin_table # each shop dataset updates this file
+for shop in oldcoop willys; do
+  cd $shop; ./process_ingredients.sh; cd ..
+done
 
 
 # PHASE 1.5: GLUING
