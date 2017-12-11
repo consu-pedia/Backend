@@ -30,7 +30,7 @@ cd glue; ./glue_shops_together.sh; cd ..
 # extract quantities, units, and lists of vitamins and E-numbers.
 # There is also one step, for blacklists/whitelists, that is interactive
 
-# cd editing; ./edit_ingredientslists.sh; cd ..
+cd editing; ./edit_ingredientslists.sh; cd ..
 
 # PHASE 3: TABLE SPLITTING
 # The steps in this phase are complicated scripts that split the
